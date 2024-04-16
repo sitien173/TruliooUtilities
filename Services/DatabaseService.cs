@@ -20,7 +20,7 @@ public class DatabaseService<T>
         _dbContextFactory = dbContextFactory ?? throw new ArgumentNullException(nameof(dbContextFactory));
 
         _moduleTask = new Lazy<Task<IJSObjectReference>>(() => jsRuntime.InvokeAsync<IJSObjectReference>(
-            "import", "./js/file.mjs").AsTask());
+            "import", "./js/file.js").AsTask());
     }
 
     public async Task InitDatabaseAsync()

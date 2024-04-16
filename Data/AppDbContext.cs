@@ -14,7 +14,7 @@ public class AppDbContext : DbContext
         , IJSRuntime jsRuntime) : base(options)
     {
         _moduleTask = new Lazy<Task<IJSObjectReference>>(() => jsRuntime.InvokeAsync<IJSObjectReference>(
-            "import", "./js/file.mjs").AsTask());
+            "import", "./js/file.js").AsTask());
     }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
