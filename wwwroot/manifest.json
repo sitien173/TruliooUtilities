@@ -15,15 +15,17 @@
     "open_in_tab": true
   },
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+    "extension_pages": "*://*/*"
   },
   "web_accessible_resources": [
     {
       "resources": [
         "framework/*",
-        "content/*"
+        "content/*",
+        "wwwroot/*"
       ],
-      "matches": [ "<all_urls>" ]
+      "matches": [ "<all_urls>" ],
+      "app.js": "framework/app.js"
     }
   ]
 }

@@ -3,7 +3,10 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using trulioo_autofill.Data;
+using trulioo_autofill.Services;
 
 namespace trulioo_autofill
 {
@@ -20,7 +23,18 @@ namespace trulioo_autofill
             });
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-            await builder.Build().RunAsync();
+            builder.Services.AddDbContextFactory<AppDbContext>(opt =>
+            {
+                opt.UseSqlite($"Filename={DatabaseService<AppDbContext>.FileName}");
+            });
+            builder.Services.AddSingleton<DatabaseService<AppDbContext>>();
+
+            var host = builder.Build();
+            
+            var dbService = host.Services.GetRequiredService<DatabaseService<AppDbContext>>();
+            await dbService.InitDatabaseAsync();
+            
+            await host.RunAsync();
         }
     }
 }

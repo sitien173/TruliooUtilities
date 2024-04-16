@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <EmccExtraLDFlags>-lidbfs.js</EmccExtraLDFlags>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,6 +10,31 @@
     <PackageReference Include="Bogus" Version="35.5.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.*" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.*" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0-preview.3.24172.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0-preview.3.24172.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\images\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="wwwroot\lib\emscripten\build.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\emscripten\index.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\emscripten\install.js" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\emscripten\package.json" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\emscripten\README.md" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\emscripten\scripts\install_emscripten.sh" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\spectre\spectre-exp.css" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\spectre\spectre-exp.min.css" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\spectre\spectre-icons.css" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\spectre\spectre-icons.min.css" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\spectre\spectre.css" />
+    <_ContentIncludedByDefault Remove="wwwroot\lib\spectre\spectre.min.css" />
   </ItemGroup>
 
 </Project>

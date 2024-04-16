@@ -1,0 +1,37 @@
+﻿@page "/custom-fields.html"
+@using trulioo_autofill.Models
+<h3>CustomFields</h3>
+
+<div class="card custom-field">
+    <div class="card-header">
+        <strong>Username</strong>
+        <div class="custom-field-buttons ">
+            <button type="button" class="btn btn-sm btn-link">
+                <img src="images/edit.svg" width="12" height="12" alt="Edit">
+            </button>
+            <button type="button" class="btn btn-sm btn-link">
+                <img src="images/delete.svg" width="12" height="12" alt="Delete">
+            </button>
+        </div>
+    </div>
+    <table class="table">
+        <tbody>
+        <tr>
+            <td class="col-3">Data Type</td><td>username</td>
+        </tr>
+        <tr>
+            <td>Match</td><td>userid, username</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div class="add-field-bar"><button type="button" class="btn btn-sm btn-outline-primary" >Add Field</button></div>
+@code {
+
+    List<CustomField> _customFields; 
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+
+}
