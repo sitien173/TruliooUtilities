@@ -6,12 +6,4 @@ artifacts/
 .vscode/
 .dotnet/
 *.binlog
-/.idea/.idea.TruliooUtilities.dir/.idea/encodings.xml
-/.idea/.idea.TruliooUtilities.dir/.idea/active-tab-highlighter-v2.xml
-/.idea/.idea.TruliooUtilities.dir/.idea/.gitignore
-/.idea/.idea.TruliooUtilities.dir/.idea/aws.xml
-/.idea/.idea.TruliooUtilities.dir/.idea/GitLink.xml
-/.idea/.idea.TruliooUtilities.dir/.idea/indexLayout.xml
-/.idea/.idea.TruliooUtilities.dir/.idea/material_theme_project_new.xml
-/.idea/.idea.TruliooUtilities.dir/.idea/misc.xml
-/.idea/.idea.TruliooUtilities.dir/.idea/vcs.xml
+/.idea/
