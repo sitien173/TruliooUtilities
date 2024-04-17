@@ -6,4 +6,20 @@ browser.runtime.onInstalled.addListener(() => {
   browser.tabs.create({
     url: indexPageUrl
   });
+
+  // Create parent menu item
+  browser.contextMenus.create({
+    id: "myContextMenuId",
+    title: "Fill Data",
+    contexts: ["page"]
+  });
+  
+  // add event listener for the parent menu item
+  browser.contextMenus.onClicked.addListener((info, tab) => {
+    if (info.menuItemId === "myContextMenuId") {
+      chrome.contextMenus.onClicked.addListener((info, tab) =>
+          chrome.tabs.sendMessage(tab.id, null)
+      );
+    }
+  });
 });

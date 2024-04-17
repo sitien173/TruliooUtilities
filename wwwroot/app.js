@@ -5,6 +5,12 @@
  * @param {object} blazorBrowserExtension Blazor browser extension instance
  */
 export function beforeStart(options, extensions, blazorBrowserExtension) {
+    chrome.runtime.onMessage.addListener(
+        function (request, sender, sendResponse) {
+            console.log("Message received from background script");
+            console.log(request, sender, sendResponse);
+        }
+    );
 }
 
 /**
@@ -12,5 +18,7 @@ export function beforeStart(options, extensions, blazorBrowserExtension) {
  * @param {any} blazor The Blazor instance
  */
 export function afterStarted(blazor) {
+    $.fn.select2.defaults.set("theme", "classic");
+    
 }
 
