@@ -3,9 +3,9 @@
 
 namespace trulioo_autofill.Model;
 
-public sealed class Field : Faker<Field>
+public sealed class FieldFaker : Faker<FieldFaker>
 {
-    public Field()
+    public FieldFaker() : base(Program.Culture)
     {
         // Name rules
         RuleFor(o => o.FirstName, f => f.Name.FirstName());

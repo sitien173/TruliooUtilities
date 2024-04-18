@@ -1,0 +1,41 @@
+﻿@page "/update-datasource-endpoint"
+@inherits BasePage
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Update Datasource Endpoint</h5>
+        @if (!string.IsNullOrEmpty(_message))
+        {
+        <div class="@(_isError ? "alert alert-danger" : "alert alert-success")" role="alert">
+            @_message
+        </div>
+        }
+    </div>
+    <div class="card-body">
+        <EditForm Model="_model" OnSubmit="HandleSubmit">
+            <DataAnnotationsValidator/>
+
+            <div class="mb-3">
+                <label class="form-label">DatasourceId</label>
+                <InputNumber @bind-Value="_model.DatasourceId" class="form-control"/>
+                <ValidationMessage For="() => _model.DatasourceId"/>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">TestUrl</label>
+                <InputText @bind-Value="_model.TestUrl" class="form-control"/>
+                <ValidationMessage For="() => _model.TestUrl"/>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">LiveUrl</label>
+                <InputText @bind-Value="_model.LiveUrl" class="form-control"/>
+                <ValidationMessage For="() => _model.LiveUrl"/>
+            </div>
+
+            <div class="mb-3 text-center">
+                <button class="btn btn-primary" type="submit">Save</button>
+            </div>
+        </EditForm>
+    </div>
+</div>

@@ -1,0 +1,54 @@
+﻿@page "/global-configuration"
+@inherits BasePage
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Global Configuration</h5>
+        <p class="card-text">This is where you can configure the global settings for the application.</p>
+        @if (!string.IsNullOrEmpty(_message))
+        {
+        <div class="alert alert-success" role="alert">
+            @_message
+        </div>
+        }
+    </div>
+    <div class="card-body">
+        <EditForm Model="_model" OnSubmit="HandleSubmit">
+            <DataAnnotationsValidator/>
+
+            <div class="form-group">
+                <label class="form-label">Culture</label>
+                <InputSelect @bind-Value="_model.CurrentCulture" class="form-control">
+                    @foreach (var locale in _locales)
+                    {
+                    <option value="@locale.Key">@locale.Value</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="() => _model.CurrentCulture" class="text-danger d-block"/>
+            </div>
+
+
+            <div class="mb-3">
+                <label class="form-label">NAPI Endpoint</label>
+                <InputText @bind-Value="_model.NapiEndpoint" class="form-control"/>
+                <ValidationMessage For="() => _model.NapiEndpoint"/>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">NAPI AuthUserName</label>
+                <InputText @bind-Value="_model.NapiAuthUserName" class="form-control"/>
+                <ValidationMessage For="() => _model.NapiAuthUserName"/>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">NAPI AuthPassword</label>
+                <InputText @bind-Value="_model.NapiAuthPassword" class="form-control"/>
+                <ValidationMessage For="() => _model.NapiAuthPassword"/>
+            </div>
+
+            <div class="mb-3 text-center">
+                <button class="btn btn-primary" type="submit">Save</button>
+            </div>
+        </EditForm>
+    </div>
+</div>

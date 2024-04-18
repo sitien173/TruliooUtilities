@@ -1,4 +1,23 @@
 ﻿@inherits LayoutComponentBase
-<div class="container">
-    @Body
+
+<Navbar IsOpen="_isOpenNavbar"></Navbar>
+<div class="container" style="margin-top: calc(5.5rem + 1px)">
+    <div class="row col-12" style="width: 400px; height: 400px">
+        @Body
+    </div>
 </div>
+
+@code {
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; }
+    
+    private bool _isOpenNavbar;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isOpenNavbar = NavigationManager.Uri.Contains("popup", StringComparison.OrdinalIgnoreCase);
+        await base.OnInitializedAsync();
+    }
+
+}

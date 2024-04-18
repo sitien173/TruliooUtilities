@@ -18,7 +18,6 @@ export function beforeStart(options, extensions, blazorBrowserExtension) {
  * @param {any} blazor The Blazor instance
  */
 export function afterStarted(blazor) {
-    $.fn.select2.defaults.set("theme", "classic");
     
 }
 
