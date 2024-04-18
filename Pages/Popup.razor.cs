@@ -1,6 +1,6 @@
 ﻿using Blazor.BrowserExtension.Pages;
 
-namespace trulioo_autofill.Pages;
+namespace TruliooExtension.Pages;
 
 public partial class Popup : BasePage
 {

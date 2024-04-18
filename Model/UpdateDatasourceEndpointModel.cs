@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace trulioo_autofill.Model;
+namespace TruliooExtension.Model;
 
 public class UpdateDatasourceEndpointModel
 {

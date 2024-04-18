@@ -5,7 +5,7 @@ using System.Text.Unicode;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
-namespace trulioo_autofill
+namespace TruliooExtension
 {
     public static class Program
     {

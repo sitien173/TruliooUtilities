@@ -16,7 +16,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "trulioo_autofill": {
+    "TruliooExtension": {
       "commandName": "Project",
       "dotnetRunMessages": "true",
       "launchBrowser": true,

@@ -11,6 +11,6 @@
         var culture = e.target.value;
         localStorage.setItem('culture', culture);
 
-        DotNet.invokeMethodAsync('trulioo-autofill', 'SetCulture', culture)
+        DotNet.invokeMethodAsync('TruliooExtension', 'SetCultureCallback', culture)
     });
 }

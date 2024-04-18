@@ -5,9 +5,9 @@ using Blazor.BrowserExtension.Pages;
 using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using trulioo_autofill.Model;
+using TruliooExtension.Model;
 
-namespace trulioo_autofill.Pages;
+namespace TruliooExtension.Pages;
 
 public partial class UpdateDataSourceEndpoint : BasePage
 {

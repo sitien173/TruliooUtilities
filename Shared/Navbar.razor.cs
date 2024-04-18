@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.JSInterop;
 
-namespace trulioo_autofill.Shared;
+namespace TruliooExtension.Shared;
 
 public partial class Navbar : ComponentBase
 {

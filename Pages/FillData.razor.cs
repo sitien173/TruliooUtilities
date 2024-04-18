@@ -3,9 +3,9 @@ using System.Text.Json;
 using Blazor.BrowserExtension.Pages;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using trulioo_autofill.Model;
+using TruliooExtension.Model;
 
-namespace trulioo_autofill.Pages;
+namespace TruliooExtension.Pages;
 
 public partial class FillData : BasePage
 {

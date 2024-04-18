@@ -8,9 +8,7 @@
     });
 
     $selectCulture.on('change', function (e) {
-        var culture = e.target.value;
-        localStorage.setItem('culture', culture);
-
-        DotNet.invokeMethodAsync('trulioo-autofill', 'SetCulture', culture)
+        const culture = e.target.value;
+        DotNet.invokeMethodAsync('TruliooExtension', 'SetCultureCallback', culture)
     });
 }

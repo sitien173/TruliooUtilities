@@ -18,13 +18,20 @@
 
             <div class="form-group">
                 <label class="form-label">Culture</label>
-                <InputSelect @bind-Value="_model.CurrentCulture" class="form-control">
+                <InputSelect @bind-Value="_model.CurrentCulture" class="form-control select-culture">
                     @foreach (var locale in _locales)
                     {
-                    <option value="@locale.Key">@locale.Value</option>
+                        if(locale.Key == _model.CurrentCulture)
+                        {
+                            <option value="@locale.Key" selected>@locale.Value</option>
+                        }
+                        else
+                        {
+                            <option value="@locale.Key">@locale.Value</option>
+                        }
                     }
                 </InputSelect>
-                <ValidationMessage For="() => _model.CurrentCulture" class="text-danger d-block"/>
+                <ValidationMessage For="() => _model.CurrentCulture"/>
             </div>
 
 

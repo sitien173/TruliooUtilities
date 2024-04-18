@@ -1,28 +1,29 @@
 ﻿using System.Net.Http.Json;
+using System.Reflection;
 using System.Text.Json;
 using AsyncAwaitBestPractices;
 using Blazor.BrowserExtension.Pages;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using trulioo_autofill.Model;
+using TruliooExtension.Model;
 
-namespace trulioo_autofill.Pages;
+namespace TruliooExtension.Pages;
 
 public partial class GlobalConfiguration : BasePage
 {
     private IJSObjectReference? _jsModule;
     private GlobalConfigurationModel _model = new ();
-    private  string _message = string.Empty;
-
+    private string _message = string.Empty;
+    private IReadOnlyList<KeyValuePair<string, string>> _locales = new List<KeyValuePair<string, string>>();
+    
     [Inject] 
     private IJSRuntime _jsRuntime { get; set; } = null!;
-    
     [Inject]
     private HttpClient _httpClient { get; set; } = null!;
-    
-    private IReadOnlyList<KeyValuePair<string, string>> _locales = new List<KeyValuePair<string, string>>();
     protected override async Task OnInitializedAsync()
     {
+        _setCultureCallback = SetCultureCallbackAction;
+        
         _locales = await _httpClient.GetFromJsonAsync<List<KeyValuePair<string, string>>>("/jsonData/locale.json");
         
         var globalConfigJson = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "global-config");
@@ -49,10 +50,32 @@ public partial class GlobalConfiguration : BasePage
     {
         if (firstRender)
         {
+            await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "../lib/select2/select2.min.js");
+            
             _jsModule = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/GlobalConfiguration.razor.js");
+            
+            await _jsModule.InvokeVoidAsync("initSelectCulture");
         }
         
         await base.OnAfterRenderAsync(firstRender);
+    }
+    
+    
+    private static Func<string, Task>? _setCultureCallback;
+    
+    private Task SetCultureCallbackAction(string culture)
+    {
+        _model.CurrentCulture = culture;
+        return Task.CompletedTask;
+    }
+    
+    [JSInvokable]
+    public static async Task SetCultureCallback(string culture)
+    {
+        if (_setCultureCallback is not null)
+        {
+            await _setCultureCallback.Invoke(culture);
+        }
     }
 
     private Task HandleSubmit()
@@ -62,7 +85,7 @@ public partial class GlobalConfiguration : BasePage
         
         _model.Save();
         _message = "Configuration saved successfully!";
-        
+
         string fieldJson = JsonSerializer.Serialize(new FieldFaker().Generate(), Program.SerializerOptions);
         _jsRuntime.InvokeVoidAsync("localStorage.setItem", "data-generate", fieldJson).SafeFireAndForget();
         
