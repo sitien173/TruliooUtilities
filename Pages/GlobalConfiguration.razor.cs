@@ -1,34 +1,37 @@
 ﻿using System.Net.Http.Json;
-using System.Reflection;
-using System.Text.Json;
-using AsyncAwaitBestPractices;
 using Blazor.BrowserExtension.Pages;
+using Humanizer;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using TruliooExtension.Model;
+using TruliooExtension.Services;
 
 namespace TruliooExtension.Pages;
 
 public partial class GlobalConfiguration : BasePage
 {
+    private bool IsLoading { get; set; }
     private IJSObjectReference? _jsModule;
     private GlobalConfigurationModel _model = new ();
-    private string _message = string.Empty;
-    private IReadOnlyList<KeyValuePair<string, string>> _locales = new List<KeyValuePair<string, string>>();
+    private IReadOnlyList<KeyValuePair<string, string>> _locales = Array.Empty<KeyValuePair<string, string>>();
     
     [Inject] 
-    private IJSRuntime _jsRuntime { get; set; } = null!;
+    private IJSRuntime _jsRuntime { get; set; }
+    
     [Inject]
-    private HttpClient _httpClient { get; set; } = null!;
+    private ToastService _toastService { get; set; }
+    
+    [Inject]
+    private HttpClient _httpClient { get; set; }
+    [Inject]
+    private StoreService StoreService { get; set; }
     protected override async Task OnInitializedAsync()
     {
-        _setCultureCallback = SetCultureCallbackAction;
-        
         _locales = await _httpClient.GetFromJsonAsync<List<KeyValuePair<string, string>>>("/jsonData/locale.json");
         
-        var globalConfigJson = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "global-config");
+        _model = await StoreService.GetAsync<GlobalConfigurationModel>("global-config");
 
-        if (string.IsNullOrWhiteSpace(globalConfigJson))
+        if (_model == null)
         {
             _model = new GlobalConfigurationModel()
             {
@@ -38,11 +41,6 @@ public partial class GlobalConfiguration : BasePage
                 NapiAuthPassword = Program.NapiAuthPassword
             };
         }
-        else
-        {
-            _model = JsonSerializer.Deserialize<GlobalConfigurationModel>(globalConfigJson, Program.SerializerOptions)!;
-        }
-        
         await base.OnInitializedAsync();
     }
 
@@ -50,45 +48,42 @@ public partial class GlobalConfiguration : BasePage
     {
         if (firstRender)
         {
-            await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "../lib/select2/select2.min.js");
-            
             _jsModule = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/GlobalConfiguration.razor.js");
-            
-            await _jsModule.InvokeVoidAsync("initSelectCulture");
+            await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./content/Blazor.BrowserExtension/lib/browser-polyfill.min.js");
         }
         
         await base.OnAfterRenderAsync(firstRender);
     }
-    
-    
-    private static Func<string, Task>? _setCultureCallback;
-    
-    private Task SetCultureCallbackAction(string culture)
+
+    private async Task HandleSubmit()
     {
-        _model.CurrentCulture = culture;
-        return Task.CompletedTask;
-    }
-    
-    [JSInvokable]
-    public static async Task SetCultureCallback(string culture)
-    {
-        if (_setCultureCallback is not null)
+        try
         {
-            await _setCultureCallback.Invoke(culture);
+            IsLoading = true;
+            await Task.Delay(10);
+
+            await StoreService.SetAsync("global-config", _model);
+
+            _model.Save();
+            await _toastService.ShowSuccess("Success", "Global configuration saved successfully.");
+
+            await StoreService.SetAsync("data-generate", new FieldFaker().Generate());
         }
-    }
-
-    private Task HandleSubmit()
-    {
-        var globalConfigJson = JsonSerializer.Serialize(_model, Program.SerializerOptions);
-        _jsRuntime.InvokeVoidAsync("localStorage.setItem", "global-config", globalConfigJson).SafeFireAndForget();
-        
-        _model.Save();
-        _message = "Configuration saved successfully!";
-
-        string fieldJson = JsonSerializer.Serialize(new FieldFaker().Generate(), Program.SerializerOptions);
-        _jsRuntime.InvokeVoidAsync("localStorage.setItem", "data-generate", fieldJson).SafeFireAndForget();
-        
-        return Task.CompletedTask;
+        catch (Exception e)
+        {
+            var innerException = e.InnerException;
+            while (innerException != null)
+            {
+                e = innerException;
+                innerException = e.InnerException;
+            }
+            
+            string message = (innerException?.Message ?? e.Message).Humanize();
+            await _toastService.ShowError("Error", message);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 }

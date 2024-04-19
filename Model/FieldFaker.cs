@@ -7,17 +7,17 @@ public sealed class FieldFaker : Faker<FieldFaker>
 {
     public FieldFaker() : base(Program.Culture)
     {
-        // Name rules
+        // Name fields
         RuleFor(o => o.FirstName, f => f.Name.FirstName());
-        RuleFor(o => o.MiddleName, f => f.Name.FirstName());
+        RuleFor(o => o.MiddleName, f => f.Name.Random.Words(1));
         RuleFor(o => o.LastName, f => f.Name.LastName());
-        RuleFor(o => o.MaidenName, f => f.Name.LastName());
         RuleFor(o => o.FullName, f => f.Name.FullName());
         RuleFor(o => o.FirstInitial, f => f.Name.FirstName()[0].ToString());
+        RuleFor(o => o.Prefix, f => f.Name.Prefix());
         
         // Address fields
         RuleFor(o => o.Address1, f => f.Address.StreetAddress());
-        RuleFor(o => o.UnitNumber, f => f.Address.SecondaryAddress());
+        RuleFor(o => o.UnitNumber, f => f.Address.BuildingNumber());
         RuleFor(o => o.StreetNumber, f => f.Address.BuildingNumber());
         RuleFor(o => o.StreetName, f => f.Address.StreetName());
         RuleFor(o => o.StreetType, f => f.Address.StreetSuffix());
@@ -26,6 +26,9 @@ public sealed class FieldFaker : Faker<FieldFaker>
         RuleFor(o => o.PostalCode, f => f.Address.ZipCode());
         RuleFor(o => o.Address2, f => f.Address.StreetAddress());
         RuleFor(o => o.ProvinceCode, f => f.Address.StateAbbr());
+        RuleFor(o => o.City, f => f.Address.City());
+        RuleFor(o => o.HouseNumber, f => f.Address.BuildingNumber());
+        RuleFor(o => o.BuildingName, f => f.Address.StreetName());
         
         
         // Phone fields

@@ -5,36 +5,18 @@
     <div class="card-header">
         <h5 class="card-title">Global Configuration</h5>
         <p class="card-text">This is where you can configure the global settings for the application.</p>
-        @if (!string.IsNullOrEmpty(_message))
-        {
-        <div class="alert alert-success" role="alert">
-            @_message
-        </div>
-        }
     </div>
     <div class="card-body">
         <EditForm Model="_model" OnSubmit="HandleSubmit">
             <DataAnnotationsValidator/>
 
-            <div class="form-group">
+            <div class="mb-3">
                 <label class="form-label">Culture</label>
-                <InputSelect @bind-Value="_model.CurrentCulture" class="form-control select-culture">
-                    @foreach (var locale in _locales)
-                    {
-                        if(locale.Key == _model.CurrentCulture)
-                        {
-                            <option value="@locale.Key" selected>@locale.Value</option>
-                        }
-                        else
-                        {
-                            <option value="@locale.Key">@locale.Value</option>
-                        }
-                    }
-                </InputSelect>
+                <MultiSelect Items="_locales" SelectedValue="@_model.CurrentCulture" Callback="(val) => { _model.CurrentCulture = val; }"></MultiSelect>
+                <InputText @bind-Value="_model.CurrentCulture" hidden />
                 <ValidationMessage For="() => _model.CurrentCulture"/>
             </div>
-
-
+            
             <div class="mb-3">
                 <label class="form-label">NAPI Endpoint</label>
                 <InputText @bind-Value="_model.NapiEndpoint" class="form-control"/>
@@ -53,8 +35,24 @@
                 <ValidationMessage For="() => _model.NapiAuthPassword"/>
             </div>
 
+            <div class="mb-3">
+                
+            </div>
+            <div class="checkbox mb-3">
+                <label class="form-label">
+                    <InputCheckbox @bind-Value="_model.EnableDebugButton" /> Enable Debug Button
+                </label>
+            </div>
+
             <div class="mb-3 text-center">
-                <button class="btn btn-primary" type="submit">Save</button>
+                @if (IsLoading)
+                {
+                    <button class="btn btn-primary disabled" type="submit"><span class="spinner"></span> Loading...</button>
+                }
+                else
+                {
+                    <button class="btn btn-primary" type="submit">Save</button>
+                }
             </div>
         </EditForm>
     </div>

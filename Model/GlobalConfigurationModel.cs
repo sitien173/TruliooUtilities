@@ -16,6 +16,8 @@ public class GlobalConfigurationModel
     
     [Required]
     public string NapiAuthPassword { get; set; }
+    
+    public bool EnableDebugButton { get; set; }
 
     public void Save()
     {

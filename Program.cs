@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using System.Text.Unicode;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using TruliooExtension.Services;
 
 namespace TruliooExtension
 {
@@ -13,7 +14,7 @@ namespace TruliooExtension
         public static string NapiAuthUserName = "localdev_napi_user";
         public static string NapiAuthPassword = "DevUser123!#"; 
         public static string Culture { get; set; } = "en";
-        public static readonly JsonSerializerOptions SerializerOptions = new()
+        public static readonly JsonSerializerOptions? SerializerOptions = new()
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
@@ -29,6 +30,8 @@ namespace TruliooExtension
             });
 
             builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+            builder.Services.AddScoped<StoreService>();
+            builder.Services.AddScoped<ToastService>();
             var host = builder.Build();
             await host.RunAsync();
         }
