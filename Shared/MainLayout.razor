@@ -1,9 +1,30 @@
-﻿@inherits LayoutComponentBase
+﻿@using Humanizer
+@inherits LayoutComponentBase
 
 <Navbar IsOpen="_isOpenNavbar"></Navbar>
 <div class="container" style="margin-top: calc(5.5rem + 1px)">
     <div class="row col-12" style="width: 400px; height: 400px">
-        @Body
+        <ErrorBoundary>
+            <ChildContent>
+                @Body
+            </ChildContent>
+            <ErrorContent Context="ex">
+                <h1>Oops! An error occurred!</h1>
+                @{
+                    var innerException = ex.InnerException;
+                    while (innerException != null)
+                    {
+                        ex = innerException;
+                        innerException = ex.InnerException;
+                    }
+
+                    string message = (innerException?.Message ?? ex.Message).Humanize();
+                    <div class="alert alert-danger" role="alert">
+                        <strong>Error:</strong> @message
+                    </div>
+                }
+            </ErrorContent>
+        </ErrorBoundary>
     </div>
 </div>
 

@@ -1,5 +1,4 @@
-﻿import * as _ from './js/main.js';
-import * as storage from './js/storageService.js';
+﻿import * as storage from './js/storageService.js';
 
 /**
  * Called before Blazor starts.
@@ -9,6 +8,7 @@ import * as storage from './js/storageService.js';
  */
 export async function beforeStart(options, extensions, blazorBrowserExtension) {
     storage.sync();
+    $.fn.modal.Constructor.prototype.enforceFocus = function() {};
 }
 /**
  * Called after Blazor is ready to receive calls from JS.

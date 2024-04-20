@@ -10,10 +10,6 @@ namespace TruliooExtension
 {
     public static class Program
     {
-        public static string NapiEndpoint = "https://localhost:44331";
-        public static string NapiAuthUserName = "localdev_napi_user";
-        public static string NapiAuthPassword = "DevUser123!#"; 
-        public static string Culture { get; set; } = "en";
         public static readonly JsonSerializerOptions? SerializerOptions = new()
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,

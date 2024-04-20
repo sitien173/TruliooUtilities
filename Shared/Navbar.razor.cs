@@ -6,16 +6,15 @@ namespace TruliooExtension.Shared;
 
 public partial class Navbar : ComponentBase
 {
-    [Inject]
-    NavigationManager NavigationManager { get; set; }
+    [Inject] NavigationManager NavigationManager { get; set; }
+    [Inject] private IJSRuntime _jsRuntime { get; set; } = null!;
     
     private IJSObjectReference? _jsModule;
     
     [Parameter]
     public bool IsOpen { get; set; }
 
-    [Inject] 
-    private IJSRuntime _jsRuntime { get; set; } = null!;
+    
 
     protected override void OnInitialized()
     {

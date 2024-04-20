@@ -1,9 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace TruliooExtension.Model;
 
-public class UpdateDatasourceEndpointModel
+public class UpdateDatasourceEndpoint
 {
+    [JsonIgnore]
+    public const string Key = "update-datasource-endpoint";
+    
     public int DatasourceId { get; set; }
     
     [Url]

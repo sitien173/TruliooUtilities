@@ -3,21 +3,15 @@ using Microsoft.JSInterop;
 
 namespace TruliooExtension.Services;
 
-public class StoreService : IAsyncDisposable
+public class StoreService(IJSRuntime jsRuntime) : IAsyncDisposable
 {
     private Lazy<IJSObjectReference> _accessorJsRef = new();
-    private readonly IJSRuntime _jsRuntime;
-
-    public StoreService(IJSRuntime jsRuntime)
-    {
-        _jsRuntime = jsRuntime;
-    }
-
+    
     private async Task WaitForReference()
     {
         if (_accessorJsRef.IsValueCreated is false)
         {
-            _accessorJsRef = new Lazy<IJSObjectReference>(await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/storageService.js"));
+            _accessorJsRef = new Lazy<IJSObjectReference>(await jsRuntime.InvokeAsync<IJSObjectReference>("import", "/js/storageService.js"));
         }
     }
 
@@ -29,7 +23,7 @@ public class StoreService : IAsyncDisposable
         }
     }
     
-    public async Task<T?> GetAsync<T>(string key)
+    public async Task<T> GetAsync<T>(string key)
     {
         await WaitForReference();
         var result = await _accessorJsRef.Value.InvokeAsync<string>("get", key);

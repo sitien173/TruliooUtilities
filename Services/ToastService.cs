@@ -2,22 +2,15 @@
 
 namespace TruliooExtension.Services;
 
-public class ToastService
+public class ToastService(IJSRuntime jsRuntime)
 {
-    private readonly IJSRuntime _jsRuntime;
-
-    public ToastService(IJSRuntime jsRuntime)
-    {
-        _jsRuntime = jsRuntime;
-    }
-    
     public async Task ShowError(string title, string message)
     {
-        await _jsRuntime.InvokeVoidAsync("showError", title, message);
+        await jsRuntime.InvokeVoidAsync("showError", title, message);
     }
     
     public async Task ShowSuccess(string title, string message)
     {
-        await _jsRuntime.InvokeVoidAsync("showSuccess", title, message);
+        await jsRuntime.InvokeVoidAsync("showSuccess", title, message);
     }
 }

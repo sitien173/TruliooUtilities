@@ -5,7 +5,11 @@ namespace TruliooExtension.Model;
 
 public sealed class FieldFaker : Faker<FieldFaker>
 {
-    public FieldFaker() : base(Program.Culture)
+    public FieldFaker() : base()
+    {
+    }
+
+    private FieldFaker(string locale) : base(locale)
     {
         // Name fields
         RuleFor(o => o.FirstName, f => f.Name.FirstName());
@@ -53,6 +57,13 @@ public sealed class FieldFaker : Faker<FieldFaker>
         // Other fields
         // ....
     }
+
+    public new static FieldFaker Generate(string locale)
+    {
+        var faker = new FieldFaker(locale);
+        return faker.Generate();
+    }
+    
     public string FirstName { get; set; }
     public string MiddleName { get; set; }
     public string LastName { get; set; }

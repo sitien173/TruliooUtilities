@@ -10,28 +10,40 @@ using TruliooExtension.Services;
 
 namespace TruliooExtension.Pages;
 
-public partial class UpdateDataSourceEndpoint : BasePage
+public partial class UpdateDataSourceEndpoint
+    : BasePage, IAsyncDisposable
 {
-    private IJSObjectReference? _jsModule;
+    [Inject] private IJSRuntime jsRuntime { get; set; }
+    [Inject] private ToastService toastService { get; set; }
+    [Inject] private HttpClient httpClient { get; set; }
+    [Inject] private StoreService storeService { get; set; }
+    
     private bool IsLoading { get; set; }
-    [Inject]
-    private IJSRuntime _jsRuntime { get; set; } = null!;
-    private UpdateDatasourceEndpointModel _model = new ();
-    private GlobalConfigurationModel _globalConfigurationModel = new ();
+    private Lazy<IJSObjectReference> _accessorJsRef = new ();
+    private UpdateDatasourceEndpoint _model = new ();
+    private Model.GlobalConfiguration _globalConfiguration = new ();
     
-    [Inject]
-    private HttpClient _httpClient { get; set; }
-    
-    [Inject]
-    private ToastService _toastService { get; set; }
-    
-    [Inject]
-    private StoreService StoreService { get; set; }
+    private async Task WaitForReference()
+    {
+        if (_accessorJsRef.IsValueCreated is false)
+        {
+            _accessorJsRef = new Lazy<IJSObjectReference>(await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/UpdateDataSourceEndpoint.razor.js"));
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_accessorJsRef.IsValueCreated)
+        {
+            await _accessorJsRef.Value.DisposeAsync();
+        }
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            _jsModule = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/UpdateDataSourceEndpoint.razor.js");
+            await WaitForReference();
         }
         
         await base.OnAfterRenderAsync(firstRender);
@@ -39,13 +51,15 @@ public partial class UpdateDataSourceEndpoint : BasePage
     
     protected override async Task OnInitializedAsync()
     {
-        _globalConfigurationModel = await StoreService.GetAsync<GlobalConfigurationModel>("global-config");
-        if (_globalConfigurationModel == null)
+        _globalConfiguration = await storeService.GetAsync<Model.GlobalConfiguration>(Model.GlobalConfiguration.Key);
+        if (_globalConfiguration == null)
         {
-            await _toastService.ShowError("Error","Please configure the global settings first.");
+            await toastService.ShowError("Error","Please configure the global settings first.");
             return;
         }
-        _model = (await StoreService.GetAsync<UpdateDatasourceEndpointModel>("update-datasource-endpoint")) ?? new UpdateDatasourceEndpointModel();
+
+        _model = (await storeService.GetAsync<UpdateDatasourceEndpoint>(UpdateDatasourceEndpoint.Key)) ?? new();
+        
         await base.OnInitializedAsync();
     }
     
@@ -56,30 +70,13 @@ public partial class UpdateDataSourceEndpoint : BasePage
 
         try
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_globalConfigurationModel.NapiEndpoint}/DatasourceStatusDetails/UpdateEndpoint?datasourceID={_model.DatasourceId}&endpointUrl={_model.LiveUrl}&testEndpointUrl={_model.TestUrl}");
-
-            string encoded = Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1")
-                .GetBytes(_globalConfigurationModel.NapiAuthUserName + ":" + _globalConfigurationModel.NapiAuthPassword));
-
-            request.Headers.Add("Authorization", $"Basic {encoded}");
-            var response = await _httpClient.SendAsync(request);
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{_globalConfiguration.Endpoint}/DatasourceStatusDetails/UpdateEndpoint?datasourceID={_model.DatasourceId}&endpointUrl={_model.LiveUrl}&testEndpointUrl={_model.TestUrl}");
+            var response = await httpClient.SendAsync(request);
 
             response.EnsureSuccessStatusCode();
-            await StoreService.SetAsync("update-datasource-endpoint", _model);
+            await storeService.SetAsync(UpdateDatasourceEndpoint.Key, _model);
 
-            await _toastService.ShowSuccess("Success", "Data Source Endpoint updated successfully.");
-        }
-        catch (Exception e)
-        {
-            var innerException = e.InnerException;
-            while (innerException != null)
-            {
-                e = innerException;
-                innerException = e.InnerException;
-            }
-            
-            string message = (innerException?.Message ?? e.Message).Humanize();
-            await _toastService.ShowError("Error", message);
+            await toastService.ShowSuccess("Success", "Data Source Endpoint updated successfully.");
         }
         finally
         {

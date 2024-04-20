@@ -12,32 +12,16 @@
 
             <div class="mb-3">
                 <label class="form-label">Culture</label>
-                <MultiSelect Items="_locales" SelectedValue="@_model.CurrentCulture" Callback="(val) => { _model.CurrentCulture = val; }"></MultiSelect>
+                <Select Items="_locales" SelectedValue="@_model.CurrentCulture" Callback="(val) => { _model.CurrentCulture = val; }"></Select>
                 <InputText @bind-Value="_model.CurrentCulture" hidden />
-                <ValidationMessage For="() => _model.CurrentCulture"/>
             </div>
             
             <div class="mb-3">
-                <label class="form-label">NAPI Endpoint</label>
-                <InputText @bind-Value="_model.NapiEndpoint" class="form-control"/>
-                <ValidationMessage For="() => _model.NapiEndpoint"/>
+                <label class="form-label">Update Datasource Endpoint</label>
+                <InputText @bind-Value="_model.Endpoint" class="form-control"/>
+                <ValidationMessage For="() => _model.Endpoint"/>
             </div>
-
-            <div class="mb-3">
-                <label class="form-label">NAPI AuthUserName</label>
-                <InputText @bind-Value="_model.NapiAuthUserName" class="form-control"/>
-                <ValidationMessage For="() => _model.NapiAuthUserName"/>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">NAPI AuthPassword</label>
-                <InputText @bind-Value="_model.NapiAuthPassword" class="form-control"/>
-                <ValidationMessage For="() => _model.NapiAuthPassword"/>
-            </div>
-
-            <div class="mb-3">
-                
-            </div>
+            
             <div class="checkbox mb-3">
                 <label class="form-label">
                     <InputCheckbox @bind-Value="_model.EnableDebugButton" /> Enable Debug Button
