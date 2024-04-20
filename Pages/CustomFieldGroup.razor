@@ -11,11 +11,11 @@
     }
     @foreach(var field in _currentCustomFieldGroup.CustomFields)
     {
-        <CustomField Field="field" EditHandler="HandleEdit" DeleteHandler="HandleDelete"></CustomField>
+        <CustomFieldDetail Field="field" EditHandler="HandleEdit" DeleteHandler="HandleDelete"></CustomFieldDetail>
     }
 
     <div class="panel-footer">
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#customFieldGroupModalAdd">
+        <button type="button" class="btn btn-primary" @onclick="HandleAddNew">
             Add Field
         </button>
         
@@ -23,42 +23,43 @@
     </div>
 </div>
 
-<!-- The modal -->
-<div class="modal fade" id="customFieldGroupModalAdd" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+@if (_isAdd || _isEdit)
+{
+    <div class="modal fade" id="customFieldGroupModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <EditForm Model="_newCustomField" OnSubmit="HandleAdd">
+            <EditForm Model="_model" OnSubmit="OnSubmit">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
-                <h4 class="modal-title" id="modalLabel">Add Field</h4>
+                <h4 class="modal-title" id="modalLabel">@(_isAdd ? "Add" : "Edit") Field</h4>
             </div>
             <div class="modal-body">
                 <DataAnnotationsValidator/>
 
                 <div class="mb-3">
                     <label class="form-label">DataField</label>
-                    <Select Items="dataFields" SelectedValue="@_newCustomField.DataField" Callback="ChangeNewModelDataField"></Select>
-                    <InputText @bind-Value="_newCustomField.DataField" hidden/>
+                    <Select Items="dataFields" SelectedValue="@_model.DataField" Excludes="ExcludesDataFields" Callback="ChangeDataField"></Select>
+                    <InputText @bind-Value="_model.DataField" hidden/>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Match</label>
-                    <InputText @bind-Value="_newCustomField.Match" class="form-control"/>
-                    <ValidationMessage For="() => _newCustomField.Match"/>
+                    <InputText @bind-Value="_model.Match" class="form-control"/>
+                    <ValidationMessage For="() => _model.Match"/>
                 </div>
                 
                 <div class="mb-3">
                     <label class="form-label">StaticValue</label>
-                    <InputText @bind-Value="_newCustomField.StaticValue" class="form-control"/>
-                    <ValidationMessage For="() => _newCustomField.StaticValue"/>
+                    <InputText @bind-Value="_model.StaticValue" class="form-control"/>
+                    <ValidationMessage For="() => _model.StaticValue"/>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Template</label>
-                    <InputText @bind-Value="_newCustomField.Template" class="form-control"/>
-                    <ValidationMessage For="() => _newCustomField.Template"/>
+                    <InputText @bind-Value="_model.Template" class="form-control"/>
+                    <ValidationMessage For="() => _model.Template"/>
                 </div>
                 
             </div>
@@ -70,50 +71,4 @@
         </div>
     </div>
 </div>
-
-<div class="modal fade" id="customFieldGroupModalEdit" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <EditForm Model="_editField" OnSubmit="HandleUpdate">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-                <h4 class="modal-title">Update Field</h4>
-            </div>
-            <div class="modal-body">
-                <DataAnnotationsValidator/>
-
-                <div class="mb-3">
-                    <label class="form-label">DataField</label>
-                    <Select Items="dataFields" SelectedValue="@_editField.DataField" Callback="ChangeEditModelDataField"></Select>
-                    <InputText @bind-Value="_editField.DataField" hidden/>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Match</label>
-                    <InputText @bind-Value="_editField.Match" class="form-control"/>
-                    <ValidationMessage For="() => _editField.Match"/>
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">StaticValue</label>
-                    <InputText @bind-Value="_editField.StaticValue" class="form-control"/>
-                    <ValidationMessage For="() => _editField.StaticValue"/>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Template</label>
-                    <InputText @bind-Value="_editField.Template" class="form-control"/>
-                    <ValidationMessage For="() => _editField.Template"/>
-                </div>
-                
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="submit" class="btn btn-primary">Save changes</button>
-            </div>
-            </EditForm>
-        </div>
-    </div>
-</div>
+}

@@ -30,14 +30,13 @@
 
 @code {
 
-    [Inject]
-    private NavigationManager NavigationManager { get; set; }
+    [Inject] private NavigationManager navigationManager { get; set; }
     
     private bool _isOpenNavbar;
 
     protected override async Task OnInitializedAsync()
     {
-        _isOpenNavbar = NavigationManager.Uri.Contains("popup", StringComparison.OrdinalIgnoreCase);
+        _isOpenNavbar = navigationManager.Uri.Contains("popup", StringComparison.OrdinalIgnoreCase);
         await base.OnInitializedAsync();
     }
 

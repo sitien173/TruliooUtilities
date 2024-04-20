@@ -40,3 +40,6 @@ function showError(heading, message) {
     });
 }
 
+window.Blazor.addEventListener("enhancedload", () => {
+    window.scroll({ top: 0, left: 0, behavior: 'instant' });
+});

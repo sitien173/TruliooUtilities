@@ -12,7 +12,6 @@ public partial class CustomFieldList : BasePage, IAsyncDisposable
     [Inject] private ToastService toastService { get; set; }
     [Inject] private StoreService storeService { get; set; }
     [Inject] private HttpClient httpClient { get; set; }
-    
     private Lazy<IJSObjectReference> _accessorJsRef = new ();
     private IReadOnlyDictionary<string, (string, int)> _locales = new Dictionary<string, (string, int)>(); 
     private Model.GlobalConfiguration _config = new ();

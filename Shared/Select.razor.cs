@@ -12,6 +12,7 @@ public partial class Select : ComponentBase, IAsyncDisposable
     [Parameter] public EventCallback<string> Callback { get; set; }
     [Parameter] public IEnumerable<KeyValuePair<string, string>> Items { get; set; }
     [Parameter] public string SelectedValue { get; set; }
+    [Parameter] public IEnumerable<string> Excludes { get; set; } = Enumerable.Empty<string>();
 
     private static Func<string, Task> _callbackAction;
     private IEnumerable<SelectOption> _options;
@@ -28,13 +29,25 @@ public partial class Select : ComponentBase, IAsyncDisposable
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
-        
+
         _options = Items.Select(x => new SelectOption
         {
             Id = x.Key,
             Text = x.Value,
             Selected = x.Key == SelectedValue
-        });
+        }).ToArray();
+        
+        if (Excludes.Any())
+        {
+            foreach (var exclude in Excludes)
+            {
+                var option = _options.FirstOrDefault(x => x.Id == exclude);
+                if (option is not null)
+                {
+                    option.Disabled = true;
+                }
+            }
+        }
     }
 
     public async ValueTask DisposeAsync()

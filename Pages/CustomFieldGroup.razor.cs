@@ -1,5 +1,6 @@
 ﻿using Blazor.BrowserExtension.Pages;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 using TruliooExtension.Model;
 using TruliooExtension.Services;
@@ -17,9 +18,13 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
     [Parameter] public string Culture { get; set; }
     
     private Lazy<IJSObjectReference> _accessorJsRef = new ();
-    private CustomField _newCustomField = new ();
-    private CustomField _editField = new ();
     private IEnumerable<KeyValuePair<string, string>> dataFields = Enumerable.Empty<KeyValuePair<string, string>>();
+    private bool _isAdd;
+    private CustomField _model = new ();
+    private bool _isEdit;
+    
+    private IEnumerable<string> ExcludesDataFields => _currentCustomFieldGroup.CustomFields.Select(x => x.DataField);
+
     protected override async Task OnParametersSetAsync()
     {
         if (string.IsNullOrWhiteSpace(Culture))
@@ -29,8 +34,6 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
         await base.OnParametersSetAsync();
     }
     
-    
-
     protected override async Task OnInitializedAsync()
     {
         _currentCustomFieldGroup.Culture = Culture;
@@ -47,7 +50,6 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
             };
             _customFieldGroups.Add(_currentCustomFieldGroup);
         }
-        
         
         dataFields = Enum.GetValues(typeof(DataField))
             .Cast<DataField>()
@@ -79,34 +81,36 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
             await WaitForReference();
         }
         
+        await WaitForReference();
+        await _accessorJsRef.Value.InvokeVoidAsync("openModal");
+        
         await base.OnAfterRenderAsync(firstRender);
     }
-    private Task ChangeNewModelDataField(string val)
-    {
-        _newCustomField.DataField = val;
-        _newCustomField.Match = val + ", *-" + val;
-        return Task.CompletedTask;
-    }
     
-    private Task ChangeEditModelDataField(string val)
+    private Task ChangeDataField(string val)
     {
-        _editField.DataField = val;
-        _editField.Match = val + ", *-" + val;
+        _model.DataField = val;
+        _model.Match = val + ", *-" + val;
         return Task.CompletedTask;
     }
 
-    private async Task HandleEdit(string fieldName)
+    private Task HandleEdit(string fieldName)
     {
-        var field = _currentCustomFieldGroup.CustomFields.First(x => x.DataField == fieldName);
-        _newCustomField = field;
-        
-        await WaitForReference();
-        await _accessorJsRef.Value.InvokeVoidAsync("openModal", "customFieldGroupModalEdit");
+        _isEdit = true;
+        _model = _currentCustomFieldGroup.CustomFields.Find(x => x.DataField == fieldName)!;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private Task HandleAddNew()
+    {
+        _isAdd = true;
+        StateHasChanged();
+        return Task.CompletedTask;
     }
 
     private async Task HandleDelete(string fieldName)
     {
-        // show confirmation dialog
         bool confirmed = await jsRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this custom field?");
 
         if (!confirmed)
@@ -120,42 +124,40 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
 
     private async Task HandleAdd()
     {
-        var existingField = _currentCustomFieldGroup.CustomFields.Find(x => x.DataField == _newCustomField.DataField);
+        _currentCustomFieldGroup.CustomFields.Add(_model);
+        await toastService.ShowSuccess("Success","Custom field added successfully.");
+        await WaitForReference();
+        await _accessorJsRef.Value.InvokeVoidAsync("closeModal");
+        await storeService.SetAsync(Model.CustomFieldGroup.Key, _customFieldGroups);
         
-        if (existingField is null)
-        {
-            _currentCustomFieldGroup.CustomFields.Add(_newCustomField);
-            await toastService.ShowSuccess("Success","Custom field added successfully.");
-            await WaitForReference();
-            await _accessorJsRef.Value.InvokeVoidAsync("closeModal");
-            await storeService.SetAsync(Model.CustomFieldGroup.Key, _customFieldGroups);
-        }
-        else
-        {
-            var confirm = await jsRuntime.InvokeAsync<bool>("confirm", "A custom field with this data field already exists. Do you want to update it?");
-
-            if (confirm)
-            {
-                _editField = _newCustomField;
-                await HandleUpdate();
-            }
-        }
-        
-        _newCustomField = new (); // reset the new custom field
+        _model = new CustomField(); // reset the new custom field
+        _isAdd = false;
     }
 
     private async Task HandleUpdate()
     {
-        var existingField = _currentCustomFieldGroup.CustomFields.Find(x => x.DataField == _editField.DataField)!;
-        existingField.DataField = _editField.DataField;
-        existingField.StaticValue = _editField.StaticValue;
-        existingField.Match = _editField.Match;
-        existingField.Template = _editField.Template;
-        
         await toastService.ShowSuccess("Success","Custom field updated successfully.");
         await WaitForReference();
         await _accessorJsRef.Value.InvokeVoidAsync("closeModal");
         
         await storeService.SetAsync(Model.CustomFieldGroup.Key, _customFieldGroups);
+        
+        _model = new CustomField(); // reset the new custom field
+        _isEdit = false;
+    }
+    
+    private async Task OnSubmit(EditContext editContext)
+    {
+        if (editContext.Validate())
+        {
+            if (_isAdd)
+            {
+                await HandleAdd();
+            }
+            else if (_isEdit)
+            {
+                await HandleUpdate();
+            }
+        }
     }
 }

@@ -4,7 +4,7 @@ using TruliooExtension.Services;
 
 namespace TruliooExtension.Shared;
 
-public partial class CustomField : ComponentBase, IAsyncDisposable
+public partial class CustomFieldDetail : ComponentBase, IAsyncDisposable
 {
     [Inject] private IJSRuntime jsRuntime { get; set; }
     [Inject] private ToastService toastService { get; set; }
@@ -20,7 +20,7 @@ public partial class CustomField : ComponentBase, IAsyncDisposable
     {
         if (_accessorJsRef.IsValueCreated is false)
         {
-            _accessorJsRef = new Lazy<IJSObjectReference>(await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Shared/CustomField.razor.js"));
+            _accessorJsRef = new Lazy<IJSObjectReference>(await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Shared/CustomFieldDetail.razor.js"));
         }
     }
 

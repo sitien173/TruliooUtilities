@@ -2,6 +2,10 @@
     $('button.close').click();
 }
 
-export function openModal(id) {
-    $('#' + id).modal('show');
+export function openModal() {
+    const $model = $('#customFieldGroupModal');
+    if($model)
+    {
+        $model.modal('show');
+    }
 }

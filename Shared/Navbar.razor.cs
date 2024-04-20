@@ -4,38 +4,53 @@ using Microsoft.JSInterop;
 
 namespace TruliooExtension.Shared;
 
-public partial class Navbar : ComponentBase
+public partial class Navbar : ComponentBase, IAsyncDisposable
 {
     [Inject] NavigationManager NavigationManager { get; set; }
-    [Inject] private IJSRuntime _jsRuntime { get; set; } = null!;
+    [Inject] private IJSRuntime jsRuntime { get; set; }
     
-    private IJSObjectReference? _jsModule;
+    private Lazy<IJSObjectReference> _accessorJsRef = new ();
     
     [Parameter]
     public bool IsOpen { get; set; }
 
-    
+    private async Task WaitForReference()
+    {
+        if (_accessorJsRef.IsValueCreated is false)
+        {
+            _accessorJsRef = new Lazy<IJSObjectReference>(await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Shared/Navbar.razor.js"));
+        }
+    }
 
-    protected override void OnInitialized()
+    public async ValueTask DisposeAsync()
+    {
+        if (_accessorJsRef.IsValueCreated)
+        {
+            await _accessorJsRef.Value.DisposeAsync();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
     {
         NavigationManager.LocationChanged += (s, e) => StateHasChanged();
-        
-        base.OnInitialized();
+        await base.OnInitializedAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
-        {
-            _jsModule = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Shared/Navbar.razor.js");
-        }
-
         if (IsOpen)
         {
-            await _jsModule.InvokeVoidAsync("openNavbar");
+            await WaitForReference();
+            await ToggleNavbar();
         }
         
         await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task ToggleNavbar()
+    {
+        await WaitForReference();
+        await _accessorJsRef.Value.InvokeVoidAsync("toggleNavbar");
     }
 
     private bool IsActive(string href, NavLinkMatch navLinkMatch = NavLinkMatch.Prefix)
