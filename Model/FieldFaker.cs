@@ -1,4 +1,6 @@
 ﻿using Bogus;
+using Fare;
+
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
 namespace TruliooExtension.Model;
@@ -61,6 +63,27 @@ public sealed class FieldFaker : Faker<FieldFaker>
     public new static FieldFaker Generate(string locale)
     {
         var faker = new FieldFaker(locale);
+        return faker.Generate();
+    }
+
+    public static FieldFaker GenerateWithCustomFieldGroup(CustomFieldGroup customFieldGroup)
+    {
+        var faker = new FieldFaker(customFieldGroup.Culture);
+
+        Random random = new Random();
+        foreach (var customField in customFieldGroup.CustomFields)
+        {
+            if (!string.IsNullOrEmpty(customField.StaticValue))
+            {
+                faker.RuleFor(customField.DataField, f => customField.StaticValue);
+            }
+        
+            if (!string.IsNullOrEmpty(customField.Template))
+            {
+                faker.RuleFor(customField.DataField, f => new Xeger(customField.Template, random).Generate());
+            }
+        }
+        
         return faker.Generate();
     }
     

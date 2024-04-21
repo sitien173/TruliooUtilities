@@ -2,7 +2,6 @@
 using Blazor.BrowserExtension.Pages;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using TruliooExtension.Model;
 using TruliooExtension.Services;
 
 namespace TruliooExtension.Pages;
@@ -14,6 +13,7 @@ public partial class GlobalConfiguration
     [Inject] private ToastService toastService { get; set; }
     [Inject] private HttpClient httpClient { get; set; }
     [Inject] private StoreService storeService { get; set; }
+    [Inject] private DataGenerator dataGenerator { get; set; }
     
     private bool IsLoading { get; set; }
     private Lazy<IJSObjectReference> _accessorJsRef = new ();
@@ -64,7 +64,9 @@ public partial class GlobalConfiguration
 
             await storeService.SetAsync(Model.GlobalConfiguration.Key, _model);
             await toastService.ShowSuccess("Success", "Global configuration saved successfully.");
-            await storeService.SetAsync("data-generate", FieldFaker.Generate(_model.CurrentCulture));
+            
+            var generate = await dataGenerator.Generate();
+            await storeService.SetAsync(DataGenerator.Key, generate);
         }
         finally
         {

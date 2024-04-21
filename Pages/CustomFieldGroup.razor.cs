@@ -14,6 +14,7 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
     [Inject] private IJSRuntime jsRuntime { get; set; }
     [Inject] private ToastService toastService { get; set; }
     [Inject] private StoreService storeService { get; set; }
+    [Inject] private DataGenerator dataGenerator { get; set; }
     
     [Parameter] public string Culture { get; set; }
     
@@ -90,7 +91,7 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
     private Task ChangeDataField(string val)
     {
         _model.DataField = val;
-        _model.Match = val + ", *-" + val;
+        _model.Match = string.Format(DataGenerator.MatchTemplate, val);
         return Task.CompletedTask;
     }
 
@@ -158,6 +159,9 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
             {
                 await HandleUpdate();
             }
+            
+            var generate = await dataGenerator.Generate();
+            await storeService.SetAsync(DataGenerator.Key, generate);
         }
     }
 }

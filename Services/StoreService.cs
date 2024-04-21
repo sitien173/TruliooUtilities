@@ -51,4 +51,10 @@ public class StoreService(IJSRuntime jsRuntime) : IAsyncDisposable
         await WaitForReference();
         await _accessorJsRef.Value.InvokeVoidAsync("remove", key);
     }
+
+    public async Task Sync()
+    {
+        await WaitForReference();
+        await _accessorJsRef.Value.InvokeVoidAsync("sync");
+    }
 }

@@ -1,31 +1,44 @@
 ﻿(async () => {
-    chrome.storage.local.get('data-generate', (result) => {
-        const data = JSON.parse(result['data-generate']);
-        
-        // query all input, textarea, select elements match likely id, name
-        const elements = document.querySelectorAll('input, textarea, select');
-        
-        elements.forEach(element => {
-            const id = element.id.toLocaleLowerCase();
-            const name = element.name.toLocaleLowerCase();
-            
-            const key = Object.keys(data)
-                .find(key => {
-                return id.endsWith(key.toLocaleLowerCase()) || name.endsWith(key.toLocaleLowerCase())
-            });
-            
-            if (key) {
-                const value = data[key];
-                
-                if (element && element.constructor.prototype) {
-                    const descriptor = Object.getOwnPropertyDescriptor(element.constructor.prototype, 'value');
-                    if (descriptor && descriptor.set) {
-                        descriptor.set.call(element, value);
-                    }
-                }
-                
-                element.dispatchEvent(new Event('input', { bubbles: true }));
-            }
-        });
+    const result = await new Promise(resolve => {
+        chrome.storage.local.get('data-generated', resolve);
     });
+
+    const data = JSON.parse(JSON.parse(result['data-generated']));
+    fillElementsByMatch(data);
+
+    function fillElementsByMatch(data) {
+        data.forEach(item => {
+            const selectors = item.Match.split(',').map(selector => selector.trim());
+            selectors.forEach(selector => {
+                const matches = document.querySelectorAll(selector);
+                const filteredMatches = Array.from(matches).filter(isValidElement);
+                filteredMatches.forEach(control => {
+                    setValue(control, item.GenerateValue);
+                });
+            });
+        });
+    }
+
+    function isValidElement(element) {
+        return ['input', 'textarea', 'select'].includes(element.tagName.toLowerCase());
+    }
+
+    function setValue(control, value) {
+        const descriptor = Object.getOwnPropertyDescriptor(control.constructor.prototype, 'value');
+        if (descriptor && descriptor.set) {
+            descriptor.set.call(control, value);
+        }
+        
+        if (control.tagName.toLowerCase() === 'input') {
+            control.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        
+        if (control.tagName.toLowerCase() === 'select') {
+            control.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        
+        if (control.tagName.toLowerCase() === 'textarea') {
+            control.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    }
 })();

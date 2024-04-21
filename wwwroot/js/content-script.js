@@ -1,27 +1,30 @@
 ﻿document.addEventListener('DOMContentLoaded', async function () {
-    
     await chrome.storage.local.get('global-config', async function (result) {
         const config = result['global-config'];
         const configObj = JSON.parse(config);
-        
+
         console.log('Trulioo Utilities: global-config =>', configObj);
         const enableDebugBtn = configObj['EnableDebugButton'];
         if (enableDebugBtn) {
-            var preNodes = document.getElementsByTagName("pre")
-            for (i = 0; i < preNodes.length; i++) {
-                preNodes[i].style.textWrap = 'wrap';
-            }
-            await new Promise(resolve => setTimeout(resolve, 500));
-            createButton();
-            const observer = new MutationObserver(mutations => {
-                createButton();
-            });
-            var logo = document.querySelector('.print-trulioo-logo');
-            if (logo)
-                observer.observe(logo, { childList: true, subtree: true });
+            await enableDebugButton();
         }
     });
 });
+
+async function enableDebugButton() {
+    var preNodes = document.getElementsByTagName("pre")
+    for (i = 0; i < preNodes.length; i++) {
+        preNodes[i].style.textWrap = 'wrap';
+    }
+    await new Promise(resolve => setTimeout(resolve, 500));
+    createButton();
+    const observer = new MutationObserver(mutations => {
+        createButton();
+    });
+    var logo = document.querySelector('.print-trulioo-logo');
+    if (logo)
+        observer.observe(logo, { childList: true, subtree: true });
+}
 
 function createButton() {
     var icons = document.getElementsByClassName("file-icon");

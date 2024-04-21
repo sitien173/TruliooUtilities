@@ -9,9 +9,8 @@
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["js/content.js"],
-      "run_at": "document_start"
+      "matches": [ "*://*/*" ],
+      "js": ["js/content-script.js", "content/Blazor.BrowserExtension/ContentScript.js"]
     }
   ],
   "action": {
@@ -29,10 +28,7 @@
     "scripting",
     "tabs"
   ],
-  "host_permissions": [
-    "http://*/*",
-    "https://*/*"
-  ],
+  "host_permissions": ["*://*/*"],
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
   },
@@ -41,18 +37,10 @@
       "resources": [
         "framework/*",
         "content/*",
-        "wwwroot/*"
+        "wwwroot/*",
+        "app.js"
       ],
-      "matches": [ "<all_urls>" ],
-      "app.js": "framework/app.js",
-      "content.js": "js/content.js"
+      "matches": [ "*://*/*" ]
     }
-  ],
-  "externally_connectable": {
-    "matches": [
-      "*://*.localhost/*",
-      "*://*.example/*",
-      "*://*.trulioo.com/*"
-    ]
-  }
+  ]
 }

@@ -14,7 +14,7 @@ browser.runtime.onInstalled.addListener(() => {
         contexts: ["all"]
     });
 
-// Create child menu items
+    // Create child menu items
     browser.contextMenus.create({
         parentId: "parentMenu",
         id: "option1",
@@ -28,6 +28,29 @@ browser.runtime.onInstalled.addListener(() => {
         title: "Fill to CP",
         contexts: ["all"]
     });
+});
+
+browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    switch (request.method)
+    {
+        case 'SyncData':
+        {
+            let result;
+            browser.storage.local.get('global-config').then((rs) => {
+                result = rs['global-config'];
+            });
+            sendResponse(result);
+            break;
+        }
+        case 'GenerateDummyData': {
+            sendResponse('Dummy data generated');
+            break;
+        }
+        default: {
+            sendResponse('Method not found');
+            break;
+        }
+    }
 });
 
 // Add event listeners to menu items

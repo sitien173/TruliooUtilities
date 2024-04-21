@@ -1,4 +1,6 @@
-﻿export function initSelect2(id, jsonData) {
+﻿$.fn.modal.Constructor.prototype.enforceFocus = function() {};
+
+export function initSelect2(id, jsonData) {
     const data = JSON.parse(jsonData);
     if(data.length === 0)
         return;
