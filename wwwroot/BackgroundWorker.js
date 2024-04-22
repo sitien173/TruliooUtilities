@@ -1,6 +1,6 @@
 ﻿// Import for the side effect of defining a global 'browser' variable
 import * as _ from "/content/Blazor.BrowserExtension/lib/browser-polyfill.min.js";
-
+import * as __ from "/lib/localforage/localforage.min.js";
 browser.runtime.onInstalled.addListener(() => {
     const indexPageUrl = browser.runtime.getURL("index.html");
     browser.tabs.create({
@@ -28,12 +28,6 @@ browser.runtime.onInstalled.addListener(() => {
         title: "Fill to CP",
         contexts: ["all"]
     });
-
-    const details = {
-        target: { allFrames: true,},
-        files: ["js/enableDebugBtn.js"]
-    };
-    browser.scripting.executeScript(details);
 });
 
 // Add event listeners to menu items
@@ -58,3 +52,17 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
         browser.scripting.executeScript(details);
     }
 });
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    (async () => {
+        const result = await getDataFromIndexDb();
+        sendResponse(result);
+    })();
+
+    // Important! Return true to indicate you want to send a response asynchronously
+    return true;
+});
+
+async function getDataFromIndexDb() {
+    return await localforage.getItem('data-generated');
+}

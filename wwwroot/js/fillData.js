@@ -1,8 +1,7 @@
 ﻿(async () => {
-    const result = await new Promise(resolve => {
-        chrome.storage.local.get('data-generated', resolve);
-    });
-
+    console.log(localforage);
+    const result = await localforage.getItem('data-generated');
+    
     const data = JSON.parse(JSON.parse(result['data-generated']));
     fillElementsByMatch(data);
 

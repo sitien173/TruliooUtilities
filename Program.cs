@@ -5,7 +5,6 @@ using System.Text.Unicode;
 using Blazor.BrowserExtension;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Microsoft.JSInterop;
 using TruliooExtension.Pages;
 using TruliooExtension.Services;
 
@@ -50,20 +49,6 @@ namespace TruliooExtension
             }
             
             await host.RunAsync();
-        }
-        
-        [JSInvokable]
-        public static Task<string> GenerateDummyData()
-        {
-            var dataGenerator = _serviceProvider.Value.GetRequiredService<DataGenerator>();
-            return dataGenerator.Generate();
-        }
-        
-        [JSInvokable]
-        public static Task SyncData()
-        {
-            var storeService = _serviceProvider.Value.GetRequiredService<StoreService>();
-            return storeService.Sync();
         }
     }
 }

@@ -26,7 +26,8 @@
     "clipboardWrite",
     "activeTab",
     "scripting",
-    "tabs"
+    "tabs",
+    "unlimitedStorage"
   ],
   "host_permissions": ["*://*/*"],
   "content_security_policy": {
@@ -38,7 +39,9 @@
         "framework/*",
         "content/*",
         "wwwroot/*",
-        "app.js"
+        "app.js",
+        "lib/localforage/localforage.min.js",
+        "js/chrome-storage-local.js"
       ],
       "matches": [ "*://*/*" ]
     }
