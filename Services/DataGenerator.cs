@@ -20,10 +20,11 @@ public class DataGenerator
         List<CustomField> customFields = [];
         string dataGenerated;
         var config = await _storeService.GetAsync<GlobalConfiguration>(GlobalConfiguration.Key) ?? new ();
+        Console.WriteLine(JsonSerializer.Serialize(config, Program.SerializerOptions));
 
         var culture = config.CurrentCulture;
         var customFieldGroups = await _storeService.GetAsync<List<CustomFieldGroup>>(CustomFieldGroup.Key) ?? [];
-
+        Console.WriteLine(JsonSerializer.Serialize(customFieldGroups, Program.SerializerOptions));
         var customFieldGroup = customFieldGroups.Find(x => x.Culture == culture);
 
         if (customFieldGroup == null)

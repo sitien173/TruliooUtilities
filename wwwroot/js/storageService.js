@@ -1,7 +1,6 @@
 ﻿export function get(key)
 {
     let result = window.localStorage.getItem(key);
-    
     if(result != null)
     {
         return result;
@@ -10,7 +9,6 @@
     chrome.storage.local.get(key, function (result) {
         result = result[key];
     });
-    
     return result;
 }
 

@@ -1,4 +1,4 @@
-﻿function showSuccess(heading, message) {
+﻿export function showSuccess(heading, message) {
     $.toast({
         text: message, // Text that is to be shown in the toast
         heading: heading, // Optional heading to be shown on the toast
@@ -19,7 +19,7 @@
     });
 }
 
-function showError(heading, message) {
+export function showError(heading, message) {
     $.toast({
         text: message, // Text that is to be shown in the toast
         heading: heading, // Optional heading to be shown on the toast
@@ -39,7 +39,3 @@ function showError(heading, message) {
         afterHidden: function () {}  // will be triggered after the toast has been hidden
     });
 }
-
-window.Blazor.addEventListener("enhancedload", () => {
-    window.scroll({ top: 0, left: 0, behavior: 'instant' });
-});

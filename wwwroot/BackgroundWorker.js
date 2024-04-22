@@ -28,40 +28,23 @@ browser.runtime.onInstalled.addListener(() => {
         title: "Fill to CP",
         contexts: ["all"]
     });
-});
 
-browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    switch (request.method)
-    {
-        case 'SyncData':
-        {
-            let result;
-            browser.storage.local.get('global-config').then((rs) => {
-                result = rs['global-config'];
-            });
-            sendResponse(result);
-            break;
-        }
-        case 'GenerateDummyData': {
-            sendResponse('Dummy data generated');
-            break;
-        }
-        default: {
-            sendResponse('Method not found');
-            break;
-        }
-    }
+    const details = {
+        target: { allFrames: true,},
+        files: ["js/enableDebugBtn.js"]
+    };
+    browser.scripting.executeScript(details);
 });
 
 // Add event listeners to menu items
-browser.contextMenus.onClicked.addListener(function (info, tab) {
+browser.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId === "option1") {
         const details = {
             target: {
                 tabId: tab.id,
                 allFrames: true,
             },
-            files: ["js/pasteToCp.js"]
+            files: ["js/pasteData.js"]
         };
         browser.scripting.executeScript(details);
     } else if (info.menuItemId === "option2") {
@@ -70,7 +53,7 @@ browser.contextMenus.onClicked.addListener(function (info, tab) {
                 tabId: tab.id,
                 allFrames: true,
             },
-            files: ["js/fillToCP.js"]
+            files: ["js/fillData.js"]
         };
         browser.scripting.executeScript(details);
     }

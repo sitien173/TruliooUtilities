@@ -10,7 +10,7 @@
   "content_scripts": [
     {
       "matches": [ "*://*/*" ],
-      "js": ["js/content-script.js", "content/Blazor.BrowserExtension/ContentScript.js"]
+      "js": ["content/Blazor.BrowserExtension/ContentScript.js"]
     }
   ],
   "action": {
