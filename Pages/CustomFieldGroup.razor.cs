@@ -17,6 +17,7 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
     [Inject] private DataGenerator dataGenerator { get; set; }
     
     [Parameter] public string Culture { get; set; }
+    [SupplyParameterFromQuery(Name = "cultureName")] public string CultureName { get; set; }
     
     private Lazy<IJSObjectReference> _accessorJsRef = new ();
     private IEnumerable<KeyValuePair<string, string>> dataFields = Enumerable.Empty<KeyValuePair<string, string>>();

@@ -22,8 +22,10 @@ public partial class CustomFieldList : BasePage, IAsyncDisposable
         var customFieldGroups = (await storeService.GetAsync<List<Model.CustomFieldGroup>>(Model.CustomFieldGroup.Key)) ?? new ();
         
         var locales = await httpClient.GetFromJsonAsync<List<KeyValuePair<string, string>>>("/jsonData/locale.json");
-        _locales = locales.ToDictionary(x => x.Key, x => x.Value);
-        _customFieldList = locales.ToDictionary(x => x.Key, x => (x.Value, customFieldGroups.Count(y => y.Culture == x.Key)));
+        _locales = locales.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
+        _customFieldList = _locales
+            .ToDictionary(x => x.Key, 
+                x => (x.Value, (customFieldGroups.FirstOrDefault(xx => xx.Culture == x.Key)?.CustomFields.Count) ?? 0));
         
         _config = await storeService.GetAsync<Model.GlobalConfiguration>(Model.GlobalConfiguration.Key);
         
@@ -54,10 +56,5 @@ public partial class CustomFieldList : BasePage, IAsyncDisposable
         {
             _accessorJsRef = new Lazy<IJSObjectReference>(await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/CustomFieldList.razor.js"));
         }
-    }
-    
-    private string getCultureName(string culture)
-    {
-        return _locales.TryGetValue(culture, out var name) ? name : culture;
     }
 }

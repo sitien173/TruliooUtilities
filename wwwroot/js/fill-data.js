@@ -25,17 +25,7 @@
         if (descriptor && descriptor.set) {
             descriptor.set.call(control, value);
         }
-        
-        if (control.tagName.toLowerCase() === 'input') {
-            control.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-        
-        if (control.tagName.toLowerCase() === 'select') {
-            control.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-        
-        if (control.tagName.toLowerCase() === 'textarea') {
-            control.dispatchEvent(new Event('input', { bubbles: true }));
-        }
+
+        control.dispatchEvent(new Event('input', { bubbles: true }));
     }
 })();

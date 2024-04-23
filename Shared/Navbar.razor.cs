@@ -6,14 +6,11 @@ namespace TruliooExtension.Shared;
 
 public partial class Navbar : ComponentBase, IAsyncDisposable
 {
-    [Inject] NavigationManager NavigationManager { get; set; }
+    [Inject] NavigationManager navigationManager { get; set; }
     [Inject] private IJSRuntime jsRuntime { get; set; }
     
     private Lazy<IJSObjectReference> _accessorJsRef = new ();
     
-    [Parameter]
-    public bool IsOpen { get; set; }
-
     private async Task WaitForReference()
     {
         if (_accessorJsRef.IsValueCreated is false)
@@ -32,30 +29,20 @@ public partial class Navbar : ComponentBase, IAsyncDisposable
 
     protected override async Task OnInitializedAsync()
     {
-        NavigationManager.LocationChanged += (s, e) => StateHasChanged();
+        navigationManager.LocationChanged += (s, e) => StateHasChanged();
         await base.OnInitializedAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (IsOpen)
-        {
-            await WaitForReference();
-            await ToggleNavbar();
-        }
-        
-        await base.OnAfterRenderAsync(firstRender);
-    }
-
-    private async Task ToggleNavbar()
-    {
         await WaitForReference();
-        await _accessorJsRef.Value.InvokeVoidAsync("toggleNavbar");
+        await _accessorJsRef.Value.InvokeVoidAsync("closeNavbar");
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     private bool IsActive(string href, NavLinkMatch navLinkMatch = NavLinkMatch.Prefix)
     {
-        var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri).ToLower();
+        var relativePath = navigationManager.ToBaseRelativePath(navigationManager.Uri).ToLower();
         return navLinkMatch == NavLinkMatch.All ? relativePath.Equals(href, StringComparison.CurrentCultureIgnoreCase) : relativePath.StartsWith(href, StringComparison.CurrentCultureIgnoreCase);
     }
 

@@ -4,7 +4,7 @@
   "description": "My browser extension built with Blazor WebAssembly",
   "version": "1",
   "background": {
-    "service_worker": "BackgroundWorker.js",
+    "service_worker": "background-worker.js",
     "type": "module"
   },
   "content_scripts": [
@@ -39,9 +39,7 @@
         "framework/*",
         "content/*",
         "wwwroot/*",
-        "app.js",
-        "lib/localforage/localforage.min.js",
-        "js/chrome-storage-local.js"
+        "app.js"
       ],
       "matches": [ "*://*/*" ]
     }
