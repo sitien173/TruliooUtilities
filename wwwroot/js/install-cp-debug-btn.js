@@ -1,20 +1,19 @@
 ﻿(async () => {
-    document.addEventListener('DOMContentLoaded', async function () {
-        await chrome.storage.local.get('global-config', async function (result) {
-            const config = result['global-config'];
-            const configObj = JSON.parse(config);
-
-            console.log('Trulioo Utilities: global-config =>', configObj);
-            const enableDebugBtn = configObj['EnableDebugButton'];
-            if (enableDebugBtn) {
-                await enableDebugButton();
-            }
-        });
-    });
+    const globalConfigJson = await getItem('global-config');
+    const globalConfig = JSON.parse(globalConfigJson);
+    const enableDebugBtn = globalConfig['EnableDebugButton'];
+    if (enableDebugBtn) {
+        console.log("Installing CP Debug Button...");
+        await enableDebugButton();
+        console.log("CP Debug Button installed.");
+    }
+    else {
+        console.log("CP Debug Button is disabled.");
+    }
 
     async function enableDebugButton() {
-        var preNodes = document.getElementsByTagName("pre")
-        for (i = 0; i < preNodes.length; i++) {
+        const preNodes = document.getElementsByTagName("pre")
+        for (let i = 0; i < preNodes.length; i++) {
             preNodes[i].style.textWrap = 'wrap';
         }
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -22,23 +21,23 @@
         const observer = new MutationObserver(mutations => {
             createButton();
         });
-        var logo = document.querySelector('.print-trulioo-logo');
+        const logo = document.querySelector('.print-trulioo-logo');
         if (logo)
             observer.observe(logo, { childList: true, subtree: true });
     }
 
     function createButton() {
-        var icons = document.getElementsByClassName("file-icon");
+        const icons = document.getElementsByClassName("file-icon");
         if (icons.length != 2) {
             console.log("Trulioo Utilities: not a valid number of icons => " + icons.length);
             return;
         }
-        var usButton = document.createElement("button");
+        const usButton = document.createElement("button");
         usButton.type = "button";
         usButton.className = "btn btn-primary";
         usButton.textContent = "US";
         usButton.onclick = async function (event) {
-            var domainString = 'localhost:44331';
+            let domainString = 'localhost:44331';
             if (document.domain.includes("staging")) {
                 domainString = "test-adminportal-us.staging.trulioo.com";
             }
@@ -52,12 +51,12 @@
             window.open(`https://${domainString}/GDCDebug/DebugRecordTransaction?transactionRecordID=${document.getElementsByClassName("file-icon")[0].parentNode.textContent.trim().split(' ')[0]}`, event.ctrlKey ? "_blank" : "trulioo");
         };
         icons[0].insertAdjacentElement('afterend', usButton);
-        var apacButton = document.createElement("button");
+        const apacButton = document.createElement("button");
         apacButton.type = "button";
         apacButton.className = "btn btn-primary";
         apacButton.textContent = "APAC";
         apacButton.onclick = async function (event) {
-            var domainString = 'localhost:44331';
+            let domainString = 'localhost:44331';
             if (document.domain.includes("staging")) {
                 domainString = "test-adminportal-apac.staging.trulioo.com";
             }

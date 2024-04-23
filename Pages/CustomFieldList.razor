@@ -8,18 +8,18 @@
     </div>
     <div class="card-body">
         <ul class="list-group">
-            @foreach (var (k, v) in _locales)
+            @foreach (var (k, v) in _customFieldList)
             {
                 if (k == _config.CurrentCulture)
                 {
                     <NavLink class="list-group-item active" href="@("custom-fields/" + k)" Match="NavLinkMatch.All">
-                        <span class="badge">@v.Item2</span>@v.Item1
+                        <span class="badge">@v.Item2</span>@getCultureName(v.Item1)
                     </NavLink>
                 }
                 else
                 {
                     <NavLink class="list-group-item" href="@("custom-fields/" + k)" Match="NavLinkMatch.All">
-                        <span class="badge">@v.Item2</span>@v.Item1
+                        <span class="badge">@v.Item2</span>@getCultureName(v.Item1)
                     </NavLink>
                 }
             }

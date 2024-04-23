@@ -1,8 +1,6 @@
 ﻿(async () => {
-    console.log(localforage);
-    const result = await localforage.getItem('data-generated');
-    
-    const data = JSON.parse(JSON.parse(result['data-generated']));
+    const result = await getItem('data-generated');
+    const data = JSON.parse(JSON.parse(result));
     fillElementsByMatch(data);
 
     function fillElementsByMatch(data) {

@@ -1,6 +1,5 @@
 ﻿// Import for the side effect of defining a global 'browser' variable
 import * as _ from "/content/Blazor.BrowserExtension/lib/browser-polyfill.min.js";
-import * as __ from "/lib/localforage/localforage.min.js";
 browser.runtime.onInstalled.addListener(() => {
     const indexPageUrl = browser.runtime.getURL("index.html");
     browser.tabs.create({
@@ -38,7 +37,7 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
                 tabId: tab.id,
                 allFrames: true,
             },
-            files: ["js/pasteData.js"]
+            files: ["js/paste-data.js"]
         };
         browser.scripting.executeScript(details);
     } else if (info.menuItemId === "option2") {
@@ -47,22 +46,30 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
                 tabId: tab.id,
                 allFrames: true,
             },
-            files: ["js/fillData.js"]
+            files: ["js/fill-data.js"]
         };
         browser.scripting.executeScript(details);
     }
 });
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     (async () => {
-        const result = await getDataFromIndexDb();
-        sendResponse(result);
+        switch (message.action) {
+            case "installCpDebugBtn":
+                const details = {
+                    target: {
+                        tabId: sender.tab.id,
+                        allFrames: true,
+                    },
+                    files: ["js/install-cp-debug-btn.js"]
+                };
+                browser.scripting.executeScript(details);
+                sendResponse();
+                break;
+            default:
+                sendResponse("Unknown action");
+                break;
+        }
     })();
-
-    // Important! Return true to indicate you want to send a response asynchronously
     return true;
 });
-
-async function getDataFromIndexDb() {
-    return await localforage.getItem('data-generated');
-}
