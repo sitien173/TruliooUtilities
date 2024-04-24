@@ -7,7 +7,7 @@ namespace TruliooExtension.Services;
 public class DataGenerator
 {
     public const string Key = "data-generated";
-    public const string MatchTemplate = "[id*=\"{0}\" i], [name*=\"{0}\" i], [class*=\"{0}\" i]";
+    public const string MatchTemplate = "[id$=\"{0}\" i], [name$=\"{0}\" i], [class$=\"{0}\" i]";
     private readonly StoreService _storeService;
     
     public DataGenerator(StoreService storeService)
@@ -17,43 +17,33 @@ public class DataGenerator
 
     public async Task<string> Generate()
     {
-        List<CustomField> customFields = [];
-        string dataGenerated;
-        var config = await _storeService.GetAsync<GlobalConfiguration>(GlobalConfiguration.Key) ?? new ();
-        Console.WriteLine(JsonSerializer.Serialize(config, Program.SerializerOptions));
-
+        var config = await _storeService.GetAsync<GlobalConfiguration>(GlobalConfiguration.Key) ?? new GlobalConfiguration();
         var culture = config.CurrentCulture;
-        var customFieldGroups = await _storeService.GetAsync<List<CustomFieldGroup>>(CustomFieldGroup.Key) ?? [];
-        Console.WriteLine(JsonSerializer.Serialize(customFieldGroups, Program.SerializerOptions));
-        var customFieldGroup = customFieldGroups.Find(x => x.Culture == culture);
-
-        if (customFieldGroup == null)
+        var customFieldGroups = await _storeService.GetAsync<List<CustomFieldGroup>>(CustomFieldGroup.Key) ?? new List<CustomFieldGroup>();
+        var customFieldGroup = customFieldGroups.FirstOrDefault(x => x.Culture == culture) ?? new CustomFieldGroup()
         {
-            var fieldFaker = FieldFaker.Generate(culture);
+            Enable = true,
+            Culture = culture
+        };
+        var customFieldGroupGlobal = customFieldGroups.FirstOrDefault(x => x.Culture == "global") ?? new CustomFieldGroup();
 
-            // Generate custom fields base on the fieldFaker properties
-            customFields.AddRange(fieldFaker.GetType().GetProperties().Select(field => new CustomField
-            {
-                DataField = field.Name, 
-                Match = string.Format(MatchTemplate, field.Name), 
-                GenerateValue = field.GetValue(fieldFaker)?.ToString()
-            }));
-
-            dataGenerated = JsonSerializer.Serialize(customFields, Program.SerializerOptions);
-        }
-        else
+        var customFields = new List<CustomField>();
+        if (!customFieldGroup.Enable)
         {
-            var fieldFaker = FieldFaker.GenerateWithCustomFieldGroup(customFieldGroup);
-            customFields.AddRange(fieldFaker.GetType().GetProperties().Select(field => new CustomField
-            {
-                DataField = field.Name,
-                Match = customFieldGroup.CustomFields.Find(x => x.DataField == field.Name)?.Match ?? string.Format(MatchTemplate, field.Name),
-                GenerateValue = field.GetValue(fieldFaker)?.ToString()
-            }));
-
-            dataGenerated = JsonSerializer.Serialize(customFields, Program.SerializerOptions);
+            return JsonSerializer.Serialize(customFields, Program.SerializerOptions);
         }
-
-        return dataGenerated;
+        
+        var fieldFaker = FieldFaker.GenerateWithCustomFieldGroup(customFieldGroupGlobal, customFieldGroup);
+        customFields.AddRange(fieldFaker.GetType().GetProperties().Select(field => new CustomField
+        {
+            DataField = field.Name,
+            Match = customFieldGroupGlobal.CustomFields.Find(x => x.DataField == field.Name)?.Match ?? 
+                    customFieldGroup.CustomFields.Find(x => x.DataField == field.Name)?.Match ?? 
+                    string.Format(MatchTemplate, field.Name),
+            GenerateValue = field.GetValue(fieldFaker)?.ToString()
+        }));
+        
+        return JsonSerializer.Serialize(customFields, Program.SerializerOptions);
     }
+
 }

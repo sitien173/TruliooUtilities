@@ -1,25 +1,42 @@
 ﻿@page "/custom-fields/{culture}"
 @inherits BasePage
-
 <div class="panel panel-default">
-    <div class="panel-heading">@CultureName (@Culture)</div>
+    <div class="panel-heading">
+        <h5>@CultureName (@Culture)</h5>
+        @if (Culture != "global")
+        {
+            <div class="checkbox">
+                <label class="form-label">
+                    <InputCheckbox @bind-Value="_currentCustomFieldGroup.Enable" /> Enable
+                </label>
+            </div>
+        }
+    </div>
     @if (!_currentCustomFieldGroup.CustomFields.Any())
     {
         <div class="panel-body">
             <div class="well well-sm">No custom fields found.</div>
         </div>
     }
-    @foreach(var field in _currentCustomFieldGroup.CustomFields)
-    {
+    <div class="panel-body">
+        @foreach(var field in _currentCustomFieldGroup.CustomFields)
+        {
         <CustomFieldDetail Field="field" EditHandler="HandleEdit" DeleteHandler="HandleDelete"></CustomFieldDetail>
-    }
-
-    <div class="panel-footer">
-        <button type="button" class="btn btn-primary" @onclick="HandleAddNew">
+        }
+        <button type="button" class="btn btn-default" @onclick="HandleAddNew">
             Add Field
         </button>
-        
+    </div>
+    <div class="panel-footer">
         <NavLink Match="NavLinkMatch.All" class="btn btn-default" href="/custom-fields">Back</NavLink>
+        @if (_isLoading)
+        {
+        <button class="btn btn-primary disabled"><span class="spinner"></span> Loading...</button>
+        }
+        else
+        {
+            <button type="button" style="margin-left: 5px" class="btn btn-primary" @onclick="SaveChanges">Save</button>
+        }
     </div>
 </div>
 
@@ -61,11 +78,17 @@
                     <InputText @bind-Value="_model.Template" class="form-control"/>
                     <ValidationMessage For="() => _model.Template"/>
                 </div>
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        <InputCheckbox @bind-Value="_model.IsIgnore" /> Ignore
+                    </label>
+                </div>
                 
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="submit" class="btn btn-primary">Save changes</button>
+                <button type="submit" class="btn btn-primary">Save</button>
             </div>
             </EditForm>
         </div>

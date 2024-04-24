@@ -15,5 +15,6 @@ public class StoreService(IJSRuntime jsRuntime)
     {
         var json = JsonSerializer.Serialize(value, Program.SerializerOptions);
         await jsRuntime.InvokeVoidAsync("setItem", key, json);
+        await jsRuntime.InvokeVoidAsync("localStorage.setItem", key, json);
     }
 }

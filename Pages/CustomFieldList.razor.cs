@@ -16,6 +16,7 @@ public partial class CustomFieldList : BasePage, IAsyncDisposable
     private IReadOnlyDictionary<string, (string, int)> _customFieldList = new Dictionary<string, (string, int)>(); 
     private Model.GlobalConfiguration _config = new ();
     private IReadOnlyDictionary<string, string> _locales = new Dictionary<string, string>();
+    private int _globalCustomFieldCount;
     
     protected override async Task OnInitializedAsync()
     {
@@ -26,6 +27,8 @@ public partial class CustomFieldList : BasePage, IAsyncDisposable
         _customFieldList = _locales
             .ToDictionary(x => x.Key, 
                 x => (x.Value, (customFieldGroups.FirstOrDefault(xx => xx.Culture == x.Key)?.CustomFields.Count) ?? 0));
+        
+        _globalCustomFieldCount = customFieldGroups.FirstOrDefault(x => x.Culture == "global")?.CustomFields.Count ?? 0;
         
         _config = await storeService.GetAsync<Model.GlobalConfiguration>(Model.GlobalConfiguration.Key);
         
@@ -46,7 +49,10 @@ public partial class CustomFieldList : BasePage, IAsyncDisposable
         {
             await WaitForReference();
         }
-        
+        else
+        {
+            await _accessorJsRef.Value.InvokeVoidAsync("scrollIntoActiveItem");
+        }
         await base.OnAfterRenderAsync(firstRender);
     }
     

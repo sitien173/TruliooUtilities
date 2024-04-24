@@ -5,27 +5,49 @@
 
     function fillElementsByMatch(data) {
         data.forEach(item => {
-            const selectors = item.Match.split(',').map(selector => selector.trim());
-            selectors.forEach(selector => {
-                const matches = document.querySelectorAll(selector);
-                const filteredMatches = Array.from(matches).filter(isValidElement);
-                filteredMatches.forEach(control => {
+            const matches = document.querySelectorAll(item.Match);
+            const filteredMatches = Array.from(matches).filter(isValidElement);
+            filteredMatches.forEach(control => {
+                if(item.GenerateValue)
+                {
                     setValue(control, item.GenerateValue);
-                });
+                }
             });
         });
     }
 
     function isValidElement(element) {
-        return ['input', 'textarea', 'select'].includes(element.tagName.toLowerCase());
+        return ['input', 'textarea', 'select', 'checkbox', 'radio'].includes(element.tagName.toLowerCase());
     }
 
     function setValue(control, value) {
-        const descriptor = Object.getOwnPropertyDescriptor(control.constructor.prototype, 'value');
-        if (descriptor && descriptor.set) {
-            descriptor.set.call(control, value);
+        if (control.tagName.toLowerCase() === 'select') {
+            const options = control.querySelectorAll('option');
+            // check if any option has the value = value
+            const option = Array.from(options).find(option => option.value === value);
+            if (option) {
+                option.selected = true;
+                control.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            else {
+                const randomIndex = Math.floor(Math.random() * options.length);
+                options[randomIndex].selected = true;
+                control.dispatchEvent(new Event('change', { bubbles: true }));
+            }
         }
-
-        control.dispatchEvent(new Event('input', { bubbles: true }));
+        else if (control.type === 'checkbox') {
+            control.checked = true;
+            control.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        else if (control.type === 'radio') {
+            const radioGroup = document.querySelectorAll(`input[type="radio"][name="${control.name}"]`);
+            const randomIndex = Math.floor(Math.random() * radioGroup.length);
+            radioGroup[randomIndex].checked = true;
+            radioGroup[randomIndex].dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        else {
+            control.value = value;
+            control.dispatchEvent(new Event('input', { bubbles: true }));
+        }
     }
 })();

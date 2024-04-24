@@ -1,20 +1,27 @@
-﻿let isContentScriptMode = false;
-/**
+﻿/**
  * Called before Blazor starts.
  * @param {object} options Blazor WebAssembly start options. Refer to https://github.com/dotnet/aspnetcore/blob/main/src/Components/Web.JS/src/Platform/WebAssemblyStartOptions.ts
  * @param {object} extensions Extensions added during publishing
  * @param {object} blazorBrowserExtension Blazor browser extension instance
  */
 export async function beforeStart(options, extensions, blazorBrowserExtension) {
+    window.isContentScriptMode = false;
+    window.TruliooExtAppID = "TruliooExtAppID";
+
     registerStoreService();
     registerToastService();
-    
+
     if (blazorBrowserExtension.BrowserExtension.Mode === blazorBrowserExtension.Modes.ContentScript) {
         const appDiv = document.createElement("div");
-        appDiv.id = "TruliooExtAppID";
+        appDiv.id = window.TruliooExtAppID;
         document.body.appendChild(appDiv);
 
-        isContentScriptMode = true;
+        window.isContentScriptMode = true;
+
+        browser.runtime.sendMessage({
+            id: TruliooExtAppID,
+            action: "installCpDebugBtn"
+        })
     }
 }
 
@@ -44,7 +51,7 @@ const registerToastService = () => {
             icon: 'success', // Type of toast icon
             showHideTransition: 'fade', // fade, slide or plain
             allowToastClose: true, // Boolean value true or false
-            hideAfter: 3000, // false to make it sticky or number representing the miliseconds as time after which toast needs to be hidden
+            hideAfter: 2000, // false to make it sticky or number representing the miliseconds as time after which toast needs to be hidden
             stack: false, // false if there should be only one toast at a time or a number representing the maximum number of toasts to be shown at a time
             position: 'top-right', // bottom-left or bottom-right or bottom-center or top-left or top-right or top-center or mid-center or an object representing the left, right, top, bottom values
             textAlign: 'left',  // Text alignment i.e. left, right or center
@@ -64,7 +71,7 @@ const registerToastService = () => {
             icon: 'error', // Type of toast icon
             showHideTransition: 'fade', // fade, slide or plain
             allowToastClose: true, // Boolean value true or false
-            hideAfter: 3000, // false to make it sticky or number representing the miliseconds as time after which toast needs to be hidden
+            hideAfter: 2000, // false to make it sticky or number representing the miliseconds as time after which toast needs to be hidden
             stack: false, // false if there should be only one toast at a time or a number representing the maximum number of toasts to be shown at a time
             position: 'top-right', // bottom-left or bottom-right or bottom-center or top-left or top-right or top-center or mid-center or an object representing the left, right, top, bottom values
 
@@ -90,8 +97,7 @@ const registerToastService = () => {
 export async function afterStarted(blazor) {
     // Code to execute after Blazor is ready
     if (isContentScriptMode) {
-        // Send a message to the background script requesting data from IndexedDB
-        chrome.runtime.sendMessage({ action: "installCpDebugBtn" }, () => {})
+        // do stuff
     }
 }
 

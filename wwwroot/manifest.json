@@ -9,8 +9,12 @@
   },
   "content_scripts": [
     {
-      "matches": [ "*://*/*" ],
-      "js": ["content/Blazor.BrowserExtension/ContentScript.js"]
+      "matches": [
+        "*://*/*"
+      ],
+      "js": [
+        "content/Blazor.BrowserExtension/ContentScript.js"
+      ]
     }
   ],
   "action": {
@@ -27,9 +31,20 @@
     "activeTab",
     "scripting",
     "tabs",
+    "commands",
     "unlimitedStorage"
   ],
-  "host_permissions": ["*://*/*"],
+  "commands": {
+    "fill-input": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+F"
+      },
+      "description": "Fill input"
+    }
+  },
+  "host_permissions": [
+    "*://*/*"
+  ],
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
   },
@@ -41,7 +56,14 @@
         "wwwroot/*",
         "app.js"
       ],
-      "matches": [ "*://*/*" ]
+      "matches": [
+        "*://*/*"
+      ]
     }
-  ]
+  ],
+  "externally_connectable": {
+    "matches": [
+      "*://*/*"
+    ]
+  }
 }

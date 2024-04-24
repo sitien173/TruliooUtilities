@@ -7,4 +7,5 @@ public class CustomField
     public string Template { get; set; }
     public string Match { get; set; }
     public string GenerateValue { get; set; }
+    public bool IsIgnore { get; set; }
 }

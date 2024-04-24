@@ -18,6 +18,19 @@ public sealed class FieldFaker : Faker<FieldFaker>
         RuleFor(o => o.FullName, f => f.Name.FullName());
         RuleFor(o => o.FirstInitial, f => f.Name.FirstName()[0].ToString());
         RuleFor(o => o.Prefix, f => f.Name.Prefix());
+        RuleFor(o => o.Gender, f => f.PickRandom("M", "F"));
+        RuleFor(o => o.Surname, f => f.Name.LastName());
+        RuleFor(o => o.GivenNames, f => f.Name.FirstName());
+        RuleFor(o => o.MiddleInitial, f => f.Name.FirstName()[0].ToString());
+        RuleFor(o => o.FirstSurname, f => f.Name.LastName());
+        RuleFor(o => o.SecondSurname, f => f.Name.LastName());
+        RuleFor(o => o.NameOnCard, f => f.Name.FullName());
+        RuleFor(o => o.PassportFullName, f => f.Name.FullName());
+        RuleFor(o => o.certFamilyName, f => f.Name.LastName());
+        RuleFor(o => o.certGivenNames, f => f.Name.FullName());
+        RuleFor(o => o.mdFullName, f => f.Name.FullName());
+        RuleFor(o => o.imFamilyName, f => f.Name.LastName());
+        RuleFor(o => o.imGivenName, f => f.Name.FirstName());
         
         // Address fields
         RuleFor(o => o.Address1, f => f.Address.StreetAddress());
@@ -32,11 +45,28 @@ public sealed class FieldFaker : Faker<FieldFaker>
         RuleFor(o => o.ProvinceCode, f => f.Address.StateAbbr());
         RuleFor(o => o.City, f => f.Address.City());
         RuleFor(o => o.HouseNumber, f => f.Address.BuildingNumber());
+        RuleFor(o => o.BuildingNumber, f => f.Address.BuildingNumber());
         RuleFor(o => o.BuildingName, f => f.Address.StreetName());
-        
+        RuleFor(o => o.District, f => f.Address.City());
+        RuleFor(o => o.CivicNumber, f => f.Address.BuildingNumber());
+        RuleFor(o => o.Province, f => f.Address.State());
+        RuleFor(o => o.County, f => f.Address.County());
+        RuleFor(o => o.FloorNumber, f => f.Random.Number().ToString());
+        RuleFor(o => o.Prefecture, f => f.Address.State());
+        RuleFor(o => o.Aza, f => f.Address.StreetName());
+        RuleFor(o => o.AreaNumbers, f => f.Address.Random.Number(32000).ToString());
+        RuleFor(o => o.Suburb, f => f.Address.City());
+        RuleFor(o => o.Municipality, f => f.Address.City());
+        RuleFor(o => o.HouseExtension, f => "A");
+        RuleFor(o => o.StateProvince, f => f.Address.State());
+        RuleFor(o => o.DependentStreetName, f => f.Address.StreetName());
+        RuleFor(o => o.DependentStreetType, f => f.Address.StreetSuffix());
+        RuleFor(o => o.Street1, f => f.Address.StreetName());
+        RuleFor(o => o.StreetNumber, f => f.Address.BuildingNumber());
         
         // Phone fields
         RuleFor(o => o.Telephone, f => f.Phone.PhoneNumber());
+        RuleFor(o => o.Telephone2, f => f.Phone.PhoneNumber());
         RuleFor(o => o.HomeTelephoneNumber, f => f.Phone.PhoneNumber());
         RuleFor(o => o.WorkTelephoneNumber, f => f.Phone.PhoneNumber());
         RuleFor(o => o.CellNumber, f => f.Phone.PhoneNumber());
@@ -48,42 +78,64 @@ public sealed class FieldFaker : Faker<FieldFaker>
         RuleFor(o => o.YearOfBirth, f => f.Date.Past().Year.ToString());
         
         // ID fields
-        RuleFor(o => o.NationalIDNumber, f => f.Random.AlphaNumeric(10));
-        
-        
-        // Passport fields
-        RuleFor(o => o.PassportNumber, f => f.Random.AlphaNumeric(10));
+        RuleFor(o => o.NationalIDNumber, f => string.Join("", f.Random.Digits(11)));
+        RuleFor(o => o.TaxIDNumber, f => string.Join("", f.Random.Digits(11)));
+        RuleFor(o => o.SocialInsuranceNumber, f => string.Join("", f.Random.Digits(11)));
+        RuleFor(o => o.PersonalIdentityCode, f => string.Join("", f.Random.Digits(11)));
+        RuleFor(o => o.InseeNumber, f => string.Join("", f.Random.Digits(11)));
+        RuleFor(o => o.HongKongIDNumber, f => string.Join("", f.Random.Digits(11)));
+        RuleFor(o => o.PersonalPublicServiceNumber, f => string.Join("", f.Random.Digits(11)));
+        RuleFor(o => o.CodiceFiscale, f => string.Join("", f.Random.Digits(11)));
+        RuleFor(o => o.CURPIDNumber, f => string.Join("", f.Random.Digits(11)));
+        RuleFor(o => o.NRICNumber, f => string.Join("", f.Random.Digits(11)));
+        RuleFor(o => o.PinNumber, f => string.Join("", f.Random.Digits(11)));
+        RuleFor(o => o.SgNRICNumber, f => string.Join("", f.Random.Digits(11)));
+        RuleFor(o => o.SocialSecurityNumber, f => string.Join("", f.Random.Digits(11)));
+        RuleFor(o => o.PassportNumber, f => string.Join("", f.Random.Digits(11)));
         
         // Other fields
         // ....
     }
-
-    public new static FieldFaker Generate(string locale)
-    {
-        var faker = new FieldFaker(locale);
-        return faker.Generate();
-    }
-
-    public static FieldFaker GenerateWithCustomFieldGroup(CustomFieldGroup customFieldGroup)
+    
+    public static FieldFaker GenerateWithCustomFieldGroup(CustomFieldGroup customFieldGroupGlobal, CustomFieldGroup customFieldGroup)
     {
         var faker = new FieldFaker(customFieldGroup.Culture);
+        var random = new Random();
 
-        Random random = new Random();
+        foreach (var customFieldGlobal in customFieldGroupGlobal.CustomFields)
+        {
+            int index = customFieldGroup.CustomFields.FindIndex(x => x.DataField == customFieldGlobal.DataField);
+            if (index >= 0)
+            {
+                customFieldGroup.CustomFields[index] = customFieldGlobal;
+            }
+            else
+            {
+                customFieldGroup.CustomFields.Add(customFieldGlobal);
+            }
+        }
+        
         foreach (var customField in customFieldGroup.CustomFields)
         {
             if (!string.IsNullOrEmpty(customField.StaticValue))
             {
                 faker.RuleFor(customField.DataField, f => customField.StaticValue);
             }
-        
+
             if (!string.IsNullOrEmpty(customField.Template))
             {
                 faker.RuleFor(customField.DataField, f => new Xeger(customField.Template, random).Generate());
             }
+            
+            if (customField.IsIgnore)
+            {
+                faker.Ignore(customField.DataField);
+            }
         }
-        
+    
         return faker.Generate();
     }
+    
     
     public string FirstName { get; set; }
     public string MiddleName { get; set; }

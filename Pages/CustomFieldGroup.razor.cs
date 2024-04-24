@@ -1,6 +1,6 @@
-﻿using Blazor.BrowserExtension.Pages;
+﻿using System.Text.Json;
+using Blazor.BrowserExtension.Pages;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 using TruliooExtension.Model;
 using TruliooExtension.Services;
@@ -24,9 +24,9 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
     private bool _isAdd;
     private CustomField _model = new ();
     private bool _isEdit;
+    private bool _isLoading;
     
     private IEnumerable<string> ExcludesDataFields => _currentCustomFieldGroup.CustomFields.Select(x => x.DataField);
-
     protected override async Task OnParametersSetAsync()
     {
         if (string.IsNullOrWhiteSpace(Culture))
@@ -57,6 +57,7 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
             .Cast<DataField>()
             .Select(x => new KeyValuePair<string, string>(x.ToString(), x.ToString()));
         
+        Console.WriteLine("OnInitializedAsync:" + JsonSerializer.Serialize(_customFieldGroups));
         await base.OnInitializedAsync();
     }
     
@@ -130,8 +131,6 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
         await toastService.ShowSuccess("Success","Custom field added successfully.");
         await WaitForReference();
         await _accessorJsRef.Value.InvokeVoidAsync("closeModal");
-        await storeService.SetAsync(Model.CustomFieldGroup.Key, _customFieldGroups);
-        
         _model = new CustomField(); // reset the new custom field
         _isAdd = false;
     }
@@ -141,28 +140,21 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
         await toastService.ShowSuccess("Success","Custom field updated successfully.");
         await WaitForReference();
         await _accessorJsRef.Value.InvokeVoidAsync("closeModal");
-        
-        await storeService.SetAsync(Model.CustomFieldGroup.Key, _customFieldGroups);
-        
         _model = new CustomField(); // reset the new custom field
         _isEdit = false;
     }
-    
-    private async Task OnSubmit(EditContext editContext)
+
+    private Task OnSubmit() => _isAdd ? HandleAdd() : HandleUpdate();
+
+    private async Task SaveChanges()
     {
-        if (editContext.Validate())
-        {
-            if (_isAdd)
-            {
-                await HandleAdd();
-            }
-            else if (_isEdit)
-            {
-                await HandleUpdate();
-            }
-            
-            var generate = await dataGenerator.Generate();
-            await storeService.SetAsync(DataGenerator.Key, generate);
-        }
+        _isLoading = true;
+        await storeService.SetAsync(Model.CustomFieldGroup.Key, _customFieldGroups);
+        
+        var generate = await dataGenerator.Generate();
+        await storeService.SetAsync(DataGenerator.Key, generate);
+        
+        _isLoading = false;
+        await toastService.ShowSuccess("Success","Saved successfully.");
     }
 }

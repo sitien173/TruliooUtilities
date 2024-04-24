@@ -7,5 +7,6 @@ public class CustomFieldGroup
     [JsonIgnore]
     public const string Key = "custom-field-groups";
     public string Culture { get; set; }
+    public bool Enable { get; set; }
     public List<CustomField> CustomFields { get; set; } = [];
 }

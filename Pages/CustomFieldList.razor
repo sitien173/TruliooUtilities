@@ -8,6 +8,10 @@
     </div>
     <div class="card-body">
         <ul class="list-group">
+            <NavLink class="list-group-item" href="@("custom-fields/global?cultureName=Global")" Match="NavLinkMatch.All">
+                <span class="badge">@_globalCustomFieldCount</span>Global
+            </NavLink>
+            
             @foreach (var (k, v) in _customFieldList)
             {
                 if (k == _config.CurrentCulture)
