@@ -1,13 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 
 namespace TruliooExtension.Model;
 
 public class GlobalConfiguration
 {
-    [JsonIgnore]
-    public const string Key = "global-config";
-
     [Required] 
     public string CurrentCulture { get; set; } = "en";
     

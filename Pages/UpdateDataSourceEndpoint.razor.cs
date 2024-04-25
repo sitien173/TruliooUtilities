@@ -1,8 +1,5 @@
-﻿using System.Text;
-using System.Text.Json;
-using AsyncAwaitBestPractices;
-using Blazor.BrowserExtension.Pages;
-using Humanizer;
+﻿using Blazor.BrowserExtension.Pages;
+using Blazored.Toast.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using TruliooExtension.Model;
@@ -13,12 +10,12 @@ namespace TruliooExtension.Pages;
 public partial class UpdateDataSourceEndpoint
     : BasePage, IAsyncDisposable
 {
-    [Inject] private IJSRuntime jsRuntime { get; set; }
-    [Inject] private ToastService toastService { get; set; }
-    [Inject] private HttpClient httpClient { get; set; }
-    [Inject] private StoreService storeService { get; set; }
+    [Inject] private IJSRuntime JSRuntime { get; set; }
+    [Inject] private IToastService ToastService { get; set; }
+    [Inject] private IUpdateDsEndpointService UpdateDsEndpointService { get; set; }
+    [Inject] private IGlobalConfigurationService GlobalConfigurationService { get; set; }
     
-    private bool IsLoading { get; set; }
+    private bool _isLoading { get; set; }
     private Lazy<IJSObjectReference> _accessorJsRef = new ();
     private UpdateDatasourceEndpoint _model = new ();
     private Model.GlobalConfiguration _globalConfiguration = new ();
@@ -27,7 +24,7 @@ public partial class UpdateDataSourceEndpoint
     {
         if (_accessorJsRef.IsValueCreated is false)
         {
-            _accessorJsRef = new Lazy<IJSObjectReference>(await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/UpdateDataSourceEndpoint.razor.js"));
+            _accessorJsRef = new Lazy<IJSObjectReference>(await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/UpdateDataSourceEndpoint.razor.js"));
         }
     }
 
@@ -51,36 +48,31 @@ public partial class UpdateDataSourceEndpoint
     
     protected override async Task OnInitializedAsync()
     {
-        _globalConfiguration = await storeService.GetAsync<Model.GlobalConfiguration>(Model.GlobalConfiguration.Key);
+        _globalConfiguration = await GlobalConfigurationService.GetAsync();
         if (_globalConfiguration == null)
         {
-            await toastService.ShowError("Error","Please configure the global settings first.");
+            ToastService.ShowError("Please configure the global settings first.");
             return;
         }
 
-        _model = (await storeService.GetAsync<UpdateDatasourceEndpoint>(UpdateDatasourceEndpoint.Key)) ?? new();
+        _model = await UpdateDsEndpointService.GetAsync();
         
         await base.OnInitializedAsync();
     }
     
     private async Task HandleSubmit()
     {
-        IsLoading = true;
+        _isLoading = true;
         await Task.Delay(10);
 
         try
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_globalConfiguration.Endpoint}/DatasourceStatusDetails/UpdateEndpoint?datasourceID={_model.DatasourceId}&endpointUrl={_model.LiveUrl}&testEndpointUrl={_model.TestUrl}");
-            var response = await httpClient.SendAsync(request);
-
-            response.EnsureSuccessStatusCode();
-            await storeService.SetAsync(UpdateDatasourceEndpoint.Key, _model);
-
-            await toastService.ShowSuccess("Success", "Data Source Endpoint updated successfully.");
+            await UpdateDsEndpointService.SaveAsync(_model);
+            ToastService.ShowSuccess("Update successfully");
         }
         finally
         {
-            IsLoading = false;
+            _isLoading = false;
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Unicode;
 using Blazor.BrowserExtension;
+using Blazored.Toast.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using TruliooExtension.Pages;
@@ -17,9 +18,6 @@ namespace TruliooExtension
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
-        
-        private static Lazy<IServiceProvider> _serviceProvider = new();
-        
         public static async Task Main(string[] args)
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -38,15 +36,26 @@ namespace TruliooExtension
             });
 
             builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-            builder.Services.AddScoped<StoreService>();
-            builder.Services.AddScoped<ToastService>();
-            builder.Services.AddScoped<DataGenerator>();
+            builder.Services.AddScoped<IStorageService, StorageService>();
+            builder.Services.AddScoped<ICustomFieldGroupService, CustomFieldGroupService>();
+            builder.Services.AddScoped<ICustomFieldService, CustomFieldService>();
+            builder.Services.AddScoped<ILocaleService, LocaleService>();
+            builder.Services.AddScoped<IGlobalConfigurationService, GlobalConfigurationService>();
+            builder.Services.AddScoped<IToastService, ToastService>();
+            builder.Services.AddScoped<IUpdateDsEndpointService, UpdateDsEndpointService>();
             var host = builder.Build();
             
-            if (!_serviceProvider.IsValueCreated)
-            {
-                _serviceProvider = new Lazy<IServiceProvider>(() => host.Services);
-            }
+            var storageService = host.Services.GetRequiredService<IStorageService>();
+            await storageService.ClearAsync();
+            
+            var globalConfigurationService = host.Services.GetRequiredService<IGlobalConfigurationService>();
+            await globalConfigurationService.InitializeAsync();
+            
+            var customFieldGroupService = host.Services.GetRequiredService<ICustomFieldGroupService>();
+            await customFieldGroupService.InitializeAsync();
+            
+            var updateDsEndpointService = host.Services.GetRequiredService<IUpdateDsEndpointService>();
+            await updateDsEndpointService.InitializeAsync();
             
             await host.RunAsync();
         }

@@ -1,5 +1,5 @@
-﻿using System.Text.Json;
-using Blazor.BrowserExtension.Pages;
+﻿using Blazor.BrowserExtension.Pages;
+using Blazored.Toast.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using TruliooExtension.Model;
@@ -9,22 +9,21 @@ namespace TruliooExtension.Pages;
 
 public partial class CustomFieldGroup : BasePage, IAsyncDisposable
 {
-    private Model.CustomFieldGroup _currentCustomFieldGroup = new ();
-    private List<Model.CustomFieldGroup> _customFieldGroups = new ();
-    [Inject] private IJSRuntime jsRuntime { get; set; }
-    [Inject] private ToastService toastService { get; set; }
-    [Inject] private StoreService storeService { get; set; }
-    [Inject] private DataGenerator dataGenerator { get; set; }
+    [Inject] private IJSRuntime JSRuntime { get; set; }
+    [Inject] private IToastService ToastService { get; set; }
+    [Inject] private ICustomFieldGroupService CustomFieldGroupService { get; set; }
     
     [Parameter] public string Culture { get; set; }
     [SupplyParameterFromQuery(Name = "cultureName")] public string CultureName { get; set; }
     
     private Lazy<IJSObjectReference> _accessorJsRef = new ();
-    private IEnumerable<KeyValuePair<string, string>> dataFields = Enumerable.Empty<KeyValuePair<string, string>>();
+    private IEnumerable<KeyValuePair<string, string>> _dataFields = Enumerable.Empty<KeyValuePair<string, string>>();
     private bool _isAdd;
     private CustomField _model = new ();
     private bool _isEdit;
     private bool _isLoading;
+    private Model.CustomFieldGroup _currentCustomFieldGroup = new ();
+    private List<Model.CustomFieldGroup> _customFieldGroups = new ();
     
     private IEnumerable<string> ExcludesDataFields => _currentCustomFieldGroup.CustomFields.Select(x => x.DataField);
     protected override async Task OnParametersSetAsync()
@@ -40,7 +39,7 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
     {
         _currentCustomFieldGroup.Culture = Culture;
         
-        _customFieldGroups = (await storeService.GetAsync<List<Model.CustomFieldGroup>>(Model.CustomFieldGroup.Key)) ?? new ();
+        _customFieldGroups = (await CustomFieldGroupService.GetAsync()).ToList();
         _currentCustomFieldGroup = _customFieldGroups.Find(x => x.Culture == Culture);
         
         if (_currentCustomFieldGroup is null)
@@ -53,11 +52,10 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
             _customFieldGroups.Add(_currentCustomFieldGroup);
         }
         
-        dataFields = Enum.GetValues(typeof(DataField))
+        _dataFields = Enum.GetValues(typeof(DataField))
             .Cast<DataField>()
             .Select(x => new KeyValuePair<string, string>(x.ToString(), x.ToString()));
         
-        Console.WriteLine("OnInitializedAsync:" + JsonSerializer.Serialize(_customFieldGroups));
         await base.OnInitializedAsync();
     }
     
@@ -65,7 +63,7 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
     {
         if (_accessorJsRef.IsValueCreated is false)
         {
-            _accessorJsRef = new Lazy<IJSObjectReference>(await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/CustomFieldGroup.razor.js"));
+            _accessorJsRef = new Lazy<IJSObjectReference>(await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/CustomFieldGroup.razor.js"));
         }
     }
 
@@ -93,7 +91,7 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
     private Task ChangeDataField(string val)
     {
         _model.DataField = val;
-        _model.Match = string.Format(DataGenerator.MatchTemplate, val);
+        _model.Match = string.Format(ConstantStrings.CustomFieldMatchTemplate, val);
         return Task.CompletedTask;
     }
 
@@ -114,21 +112,17 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
 
     private async Task HandleDelete(string fieldName)
     {
-        bool confirmed = await jsRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this custom field?");
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this custom field?");
 
         if (!confirmed)
             return;
         
         _currentCustomFieldGroup.CustomFields.Remove(_currentCustomFieldGroup.CustomFields.First(x => x.DataField == fieldName));
-        await toastService.ShowSuccess("Success","Custom field deleted successfully.");
-        
-        await storeService.SetAsync(Model.CustomFieldGroup.Key, _customFieldGroups);
     }
 
     private async Task HandleAdd()
     {
         _currentCustomFieldGroup.CustomFields.Add(_model);
-        await toastService.ShowSuccess("Success","Custom field added successfully.");
         await WaitForReference();
         await _accessorJsRef.Value.InvokeVoidAsync("closeModal");
         _model = new CustomField(); // reset the new custom field
@@ -137,7 +131,6 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
 
     private async Task HandleUpdate()
     {
-        await toastService.ShowSuccess("Success","Custom field updated successfully.");
         await WaitForReference();
         await _accessorJsRef.Value.InvokeVoidAsync("closeModal");
         _model = new CustomField(); // reset the new custom field
@@ -149,12 +142,8 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
     private async Task SaveChanges()
     {
         _isLoading = true;
-        await storeService.SetAsync(Model.CustomFieldGroup.Key, _customFieldGroups);
-        
-        var generate = await dataGenerator.Generate();
-        await storeService.SetAsync(DataGenerator.Key, generate);
-        
+        await CustomFieldGroupService.SaveAsync(_customFieldGroups);
         _isLoading = false;
-        await toastService.ShowSuccess("Success","Saved successfully.");
+        ToastService.ShowSuccess("Changes saved successfully.");
     }
 }

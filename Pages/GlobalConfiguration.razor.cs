@@ -1,5 +1,5 @@
-﻿using System.Net.Http.Json;
-using Blazor.BrowserExtension.Pages;
+﻿using Blazor.BrowserExtension.Pages;
+using Blazored.Toast.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using TruliooExtension.Services;
@@ -9,23 +9,20 @@ namespace TruliooExtension.Pages;
 public partial class GlobalConfiguration
     : BasePage, IAsyncDisposable
 {
-    [Inject] private IJSRuntime jsRuntime { get; set; }
-    [Inject] private ToastService toastService { get; set; }
-    [Inject] private HttpClient httpClient { get; set; }
-    [Inject] private StoreService storeService { get; set; }
-    [Inject] private DataGenerator dataGenerator { get; set; }
-    
+    [Inject] private IJSRuntime JSRuntime { get; set; }
+    [Inject] private IToastService ToastService { get; set; }
+    [Inject] private ICustomFieldGroupService CustomFieldGroupService { get; set; }
+    [Inject] private ICustomFieldService CustomFieldService { get; set; }
+    [Inject] private ILocaleService LocaleService { get; set; }
+    [Inject] private IGlobalConfigurationService GlobalConfigurationService { get; set; }
     private bool IsLoading { get; set; }
     private Lazy<IJSObjectReference> _accessorJsRef = new ();
     private Model.GlobalConfiguration _model = new ();
     private IReadOnlyDictionary<string, string> _locales = new Dictionary<string, string>();
     protected override async Task OnInitializedAsync()
     {
-        var locales = await httpClient.GetFromJsonAsync<List<KeyValuePair<string, string>>>("/jsonData/locale.json");
-        _locales = locales.ToDictionary(x => x.Key, x => x.Value);
-        
-        _model = (await storeService.GetAsync<Model.GlobalConfiguration>(Model.GlobalConfiguration.Key)) ?? new ();
-        
+        _locales = await LocaleService.GetLocalesAsync();
+        _model = await GlobalConfigurationService.GetAsync();
         await base.OnInitializedAsync();
     }
     
@@ -33,7 +30,7 @@ public partial class GlobalConfiguration
     {
         if (_accessorJsRef.IsValueCreated is false)
         {
-            _accessorJsRef = new Lazy<IJSObjectReference>(await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/GlobalConfiguration.razor.js"));
+            _accessorJsRef = new Lazy<IJSObjectReference>(await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/GlobalConfiguration.razor.js"));
         }
     }
 
@@ -62,11 +59,15 @@ public partial class GlobalConfiguration
             IsLoading = true;
             await Task.Delay(10);
 
-            await storeService.SetAsync(Model.GlobalConfiguration.Key, _model);
-            await toastService.ShowSuccess("Success", "Global configuration saved successfully.");
-            
-            var generate = await dataGenerator.Generate();
-            await storeService.SetAsync(DataGenerator.Key, generate);
+            await GlobalConfigurationService.SaveAsync(_model);
+            var customFields = await CustomFieldService.GetDataGenerateAsync(_model.CurrentCulture);
+            var update = new Model.CustomFieldGroup()
+            {
+                Culture = _model.CurrentCulture,
+                CustomFields = customFields
+            };
+            await CustomFieldGroupService.UpdateAsync(_model.CurrentCulture, update);
+            ToastService.ShowSuccess("Saved successfully");
         }
         finally
         {

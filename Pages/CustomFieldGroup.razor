@@ -57,7 +57,7 @@
 
                 <div class="mb-3">
                     <label class="form-label">DataField</label>
-                    <Select Items="dataFields" SelectedValue="@_model.DataField" Excludes="ExcludesDataFields" Callback="ChangeDataField"></Select>
+                    <Select Items="_dataFields" SelectedValue="@_model.DataField" Excludes="ExcludesDataFields" Callback="ChangeDataField"></Select>
                     <InputText @bind-Value="_model.DataField" hidden/>
                 </div>
 

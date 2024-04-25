@@ -1,14 +1,13 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using Blazored.Toast.Services;
+using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using TruliooExtension.Services;
 
 namespace TruliooExtension.Shared;
 
 public partial class CustomFieldDetail : ComponentBase, IAsyncDisposable
 {
-    [Inject] private IJSRuntime jsRuntime { get; set; }
-    [Inject] private ToastService toastService { get; set; }
-    [Inject] private StoreService storeService { get; set; }
+    [Inject] private IJSRuntime JSRuntime { get; set; }
+    [Inject] private IToastService ToastService { get; set; }
     
     [Parameter] public Model.CustomField Field { get; set; }
     [Parameter] public EventCallback<string> EditHandler { get; set; }
@@ -20,7 +19,7 @@ public partial class CustomFieldDetail : ComponentBase, IAsyncDisposable
     {
         if (_accessorJsRef.IsValueCreated is false)
         {
-            _accessorJsRef = new Lazy<IJSObjectReference>(await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Shared/CustomFieldDetail.razor.js"));
+            _accessorJsRef = new Lazy<IJSObjectReference>(await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Shared/CustomFieldDetail.razor.js"));
         }
     }
 
