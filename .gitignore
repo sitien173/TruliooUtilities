@@ -7,3 +7,4 @@ artifacts/
 .dotnet/
 *.binlog
 /.idea/
+/wwwroot/node_modules/

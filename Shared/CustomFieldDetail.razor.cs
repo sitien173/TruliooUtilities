@@ -10,17 +10,19 @@ public partial class CustomFieldDetail : ComponentBase, IAsyncDisposable
     [Inject] private IToastService ToastService { get; set; }
     
     [Parameter] public Model.CustomField Field { get; set; }
-    [Parameter] public EventCallback<string> EditHandler { get; set; }
-    [Parameter] public EventCallback<string> DeleteHandler { get; set; }
+    [Parameter] public int Index { get; set; }
+    [Parameter] public EventCallback<int> EditHandler { get; set; }
+    [Parameter] public EventCallback<int> DeleteHandler { get; set; }
     
     private Lazy<IJSObjectReference> _accessorJsRef = new ();
-    
-    private async Task WaitForReference()
+
+    protected override async Task OnInitializedAsync()
     {
         if (_accessorJsRef.IsValueCreated is false)
         {
             _accessorJsRef = new Lazy<IJSObjectReference>(await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Shared/CustomFieldDetail.razor.js"));
         }
+        await base.OnInitializedAsync();
     }
 
     public async ValueTask DisposeAsync()
@@ -33,21 +35,16 @@ public partial class CustomFieldDetail : ComponentBase, IAsyncDisposable
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
-        {
-            await WaitForReference();
-        }
-        
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    private Task Edit(string fieldDataField)
+    private Task Edit()
     {
-        return EditHandler.InvokeAsync(fieldDataField);
+        return EditHandler.InvokeAsync(Index);
     }
 
-    private Task Delete(string fieldDataField)
+    private Task Delete()
     {
-        return DeleteHandler.InvokeAsync(fieldDataField);
+        return DeleteHandler.InvokeAsync(Index);
     }
 }

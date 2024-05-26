@@ -1,4 +1,5 @@
-﻿using Blazor.BrowserExtension.Pages;
+﻿using System.Text.Json;
+using Blazor.BrowserExtension.Pages;
 using Blazored.Toast.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -12,20 +13,19 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
     [Inject] private IJSRuntime JSRuntime { get; set; }
     [Inject] private IToastService ToastService { get; set; }
     [Inject] private ICustomFieldGroupService CustomFieldGroupService { get; set; }
+    [Inject] private IGlobalConfigurationService GlobalConfigurationService { get; set; }
     
     [Parameter] public string Culture { get; set; }
     [SupplyParameterFromQuery(Name = "cultureName")] public string CultureName { get; set; }
     
     private Lazy<IJSObjectReference> _accessorJsRef = new ();
-    private IEnumerable<KeyValuePair<string, string>> _dataFields = Enumerable.Empty<KeyValuePair<string, string>>();
+    private IEnumerable<KeyValuePair<string, string>> _dataFields = [];
     private bool _isAdd;
     private CustomField _model = new ();
-    private bool _isEdit;
     private bool _isLoading;
-    private Model.CustomFieldGroup _currentCustomFieldGroup = new ();
-    private List<Model.CustomFieldGroup> _customFieldGroups = new ();
+    private Model.CustomFieldGroup _customFieldGroup = new ();
     
-    private IEnumerable<string> ExcludesDataFields => _currentCustomFieldGroup.CustomFields.Select(x => x.DataField);
+    private IEnumerable<string> ExcludesDataFields => _customFieldGroup.CustomFields.Where(x => x.IsCustomize).Select(x => x.DataField);
     protected override async Task OnParametersSetAsync()
     {
         if (string.IsNullOrWhiteSpace(Culture))
@@ -37,19 +37,20 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
     
     protected override async Task OnInitializedAsync()
     {
-        _currentCustomFieldGroup.Culture = Culture;
-        
-        _customFieldGroups = (await CustomFieldGroupService.GetAsync()).ToList();
-        _currentCustomFieldGroup = _customFieldGroups.Find(x => x.Culture == Culture);
-        
-        if (_currentCustomFieldGroup is null)
+        _customFieldGroup = await CustomFieldGroupService.GetAsync(Culture) ?? new Model.CustomFieldGroup()
         {
-            _currentCustomFieldGroup = new Model.CustomFieldGroup
+            Culture = Culture,
+            Enable = true
+        };
+        
+        if (_customFieldGroup.CustomFields.Count == 0)
+        {
+            await CustomFieldGroupService.RefreshAsync(Culture);
+            _customFieldGroup = await CustomFieldGroupService.GetAsync(Culture) ?? new Model.CustomFieldGroup()
             {
                 Culture = Culture,
-                CustomFields = new List<CustomField>()
+                Enable = true
             };
-            _customFieldGroups.Add(_currentCustomFieldGroup);
         }
         
         _dataFields = Enum.GetValues(typeof(DataField))
@@ -58,13 +59,14 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
         
         await base.OnInitializedAsync();
     }
-    
-    private async Task WaitForReference()
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (_accessorJsRef.IsValueCreated is false)
         {
             _accessorJsRef = new Lazy<IJSObjectReference>(await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/CustomFieldGroup.razor.js"));
         }
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     public async ValueTask DisposeAsync()
@@ -74,75 +76,107 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
             await _accessorJsRef.Value.DisposeAsync();
         }
     }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await WaitForReference();
-        }
-        
-        await WaitForReference();
-        await _accessorJsRef.Value.InvokeVoidAsync("openModal");
-        
-        await base.OnAfterRenderAsync(firstRender);
-    }
     
-    private Task ChangeDataField(string val)
+    private async Task ChangeDataField(string val)
     {
         _model.DataField = val;
-        _model.Match = string.Format(ConstantStrings.CustomFieldMatchTemplate, val);
-        return Task.CompletedTask;
-    }
-
-    private Task HandleEdit(string fieldName)
-    {
-        _isEdit = true;
-        _model = _currentCustomFieldGroup.CustomFields.Find(x => x.DataField == fieldName)!;
+        _model.Match = (await GlobalConfigurationService.GetAsync())?.MatchTemplate ?? string.Format(ConstantStrings.CustomFieldMatchTemplate, val);
+        
         StateHasChanged();
-        return Task.CompletedTask;
     }
 
-    private Task HandleAddNew()
+    private async Task PrepareEdit(int index)
+    {
+        _model = _customFieldGroup.CustomFields[index];
+        
+        StateHasChanged();
+        
+        await Task.Delay(10);
+        await _accessorJsRef.Value.InvokeVoidAsync("openModal");
+    }
+
+    private async Task PrepareAdd()
     {
         _isAdd = true;
+        _model = new CustomField()
+        {
+            IsCustomize = true
+        };
+        
         StateHasChanged();
-        return Task.CompletedTask;
+        await Task.Delay(10);
+        
+        await _accessorJsRef.Value.InvokeVoidAsync("openModal");
     }
 
-    private async Task HandleDelete(string fieldName)
+    private async Task HandleDelete(int index)
     {
         bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this custom field?");
 
         if (!confirmed)
             return;
         
-        _currentCustomFieldGroup.CustomFields.Remove(_currentCustomFieldGroup.CustomFields.First(x => x.DataField == fieldName));
+        _customFieldGroup.CustomFields.RemoveAt(index);
     }
 
-    private async Task HandleAdd()
+    private Task HandleAdd()
     {
-        _currentCustomFieldGroup.CustomFields.Add(_model);
-        await WaitForReference();
-        await _accessorJsRef.Value.InvokeVoidAsync("closeModal");
-        _model = new CustomField(); // reset the new custom field
+        _customFieldGroup.CustomFields.Add(new CustomField()
+        {
+            DataField = _model.DataField,
+            IsCustomize = _model.IsCustomize,
+            Match = _model.Match,
+            StaticValue = _model.StaticValue,
+            Template = _model.Template,
+            GenerateValue = _model.GenerateValue,
+            IsIgnore = _model.IsIgnore
+        });
         _isAdd = false;
+        
+        StateHasChanged();
+        return Task.CompletedTask;
     }
 
-    private async Task HandleUpdate()
+    private Task HandleUpdate()
     {
-        await WaitForReference();
-        await _accessorJsRef.Value.InvokeVoidAsync("closeModal");
-        _model = new CustomField(); // reset the new custom field
-        _isEdit = false;
+        var index = _customFieldGroup.CustomFields.FindLastIndex(x => x.IsCustomize && x.DataField == _model.DataField);
+        _customFieldGroup.CustomFields[index] = new CustomField()
+        {
+            DataField = _model.DataField,
+            IsCustomize = _model.IsCustomize,
+            Match = _model.Match,
+            StaticValue = _model.StaticValue,
+            Template = _model.Template,
+            GenerateValue = _model.GenerateValue,
+            IsIgnore = _model.IsIgnore
+        };
+        StateHasChanged();
+        return Task.CompletedTask;
     }
 
-    private Task OnSubmit() => _isAdd ? HandleAdd() : HandleUpdate();
+    private async Task OnSubmit()
+    {
+        var task = _isAdd ? HandleAdd() : HandleUpdate();
+        await task;
+        
+        await _accessorJsRef.Value.InvokeVoidAsync("closeModal");
+    }
 
     private async Task SaveChanges()
     {
         _isLoading = true;
-        await CustomFieldGroupService.SaveAsync(_customFieldGroups);
+        await Task.Delay(10);
+
+        await CustomFieldGroupService.SaveAsync(_customFieldGroup);
+        if (Culture == "global")
+        {
+            var config = await GlobalConfigurationService.GetAsync();
+            var currentCulture = config?.CurrentCulture ?? "en";
+            Culture = currentCulture;
+        }
+        
+        await CustomFieldGroupService.RefreshAsync(Culture);
+        
         _isLoading = false;
         ToastService.ShowSuccess("Changes saved successfully.");
     }

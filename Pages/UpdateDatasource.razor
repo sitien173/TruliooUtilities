@@ -1,0 +1,82 @@
+﻿@page "/update-datasource"
+@inherits BasePage
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Update Datasource</h5>
+        <p class="card-text">This is where you can update the datasource settings.</p>
+
+        <div class="form-inline">
+            <div class="form-group">
+                <label class="sr-only">Datasource ID</label>
+                <InputNumber class="form-control" @bind-Value="_fetchDatasourceId"/>
+            </div>
+            <button class="btn btn-primary" @onclick="FetchDatasource">Load</button>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (_model is { ID: > 0 })
+        {
+            <EditForm Model="_model" OnSubmit="HandleSubmit">
+                <DataAnnotationsValidator/>
+
+                <div class="mb-3">
+                    <label class="form-label">ID</label>
+                    <InputNumber class="form-control" @bind-Value="_model.ID" readonly/>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Name</label>
+                    <InputText class="form-control" @bind-Value="_model.Name" readonly/>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    <InputText class="form-control" @bind-Value="_model.Username"/>
+                    <ValidationMessage For="@(() => _model.Username)"/>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">TestUsername</label>
+                    <InputText class="form-control" @bind-Value="_model.TestUsername"/>
+                    <ValidationMessage For="@(() => _model.TestUsername)"/>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <InputText class="form-control" @bind-Value="_model.Password"/>
+                    <ValidationMessage For="@(() => _model.Password)"/>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">TestPassword</label>
+                    <InputText class="form-control" @bind-Value="_model.TestPassword"/>
+                    <ValidationMessage For="@(() => _model.TestPassword)"/>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">EndpointUrl</label>
+                    <InputText class="form-control" @bind-Value="_model.EndpointUrl"/>
+                    <ValidationMessage For="@(() => _model.EndpointUrl)"/>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">TestEndPointUrl</label>
+                    <InputText class="form-control" @bind-Value="_model.TestEndPointUrl"/>
+                    <ValidationMessage For="@(() => _model.TestEndPointUrl)"/>
+                </div>
+
+                <div class="mb-3 text-center">
+                    @if (IsLoading)
+                    {
+                        <button class="btn btn-primary disabled" type="submit"><span class="spinner"></span> Loading...</button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-primary" type="submit">Save</button>
+                    }
+                </div>
+            </EditForm>
+        }
+    </div>
+</div>

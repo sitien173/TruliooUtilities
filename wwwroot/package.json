@@ -1,0 +1,18 @@
+{
+  "type": "commonjs",
+  "devDependencies": {
+    "browserify": "^17.0.0",
+    "esmify": "^2.1.1"
+  },
+  "scripts": {
+    "build": "browserify background-worker.js -p esmify > background-worker.min.js"
+  },
+  "dependencies": {
+    "bootstrap": "^3.4.1",
+    "jquery": "^3.7.1",
+    "localforage": "^1.10.0",
+    "quicktype-core": "^23.0.168",
+    "select2": "^4.1.0-rc.0",
+    "select2-bootstrap-theme": "^0.1.0-beta.10"
+  }
+}

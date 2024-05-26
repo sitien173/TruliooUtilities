@@ -1,19 +1,22 @@
 ﻿using Blazor.BrowserExtension.Pages;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using TruliooExtension.Model;
 using TruliooExtension.Services;
 
 namespace TruliooExtension.Pages;
 
 public partial class Popup : BasePage
 {
-    [Inject] private NavigationManager _navigationManager { get; set; }
-    [Inject] private IStorageService _storageService { get; set; }
+    [Inject] private NavigationManager NavigationManager { get; set; }
+    [Inject] private IStorageService StorageService { get; set; }
+    
+    private const string _key = "current-page";
     protected override async Task OnInitializedAsync()
     {
-        _navigationManager.LocationChanged += async (s, e) =>
+        NavigationManager.LocationChanged += async (s, e) =>
         {
-            await _storageService.SetAsync("current-page", _navigationManager.ToBaseRelativePath(_navigationManager.Uri));
+            await StorageService.SetAsync<string, string>(ConstantStrings.SettingTable,_key, NavigationManager.ToBaseRelativePath(NavigationManager.Uri));
         };
         
         await base.OnInitializedAsync();
@@ -23,8 +26,8 @@ public partial class Popup : BasePage
     {
         if (firstRender)
         {
-            string currentPage = await _storageService.GetAsync<string>("current-page");
-            _navigationManager.NavigateTo(!string.IsNullOrEmpty(currentPage) ? currentPage : "/global-configuration");
+            string? currentPage = await StorageService.GetAsync<string, string>(ConstantStrings.SettingTable,_key);
+            NavigationManager.NavigateTo(!string.IsNullOrEmpty(currentPage) ? currentPage : "/global-configuration");
         }
         await base.OnAfterRenderAsync(firstRender);
     }

@@ -4,8 +4,7 @@
   "description": "My browser extension built with Blazor WebAssembly",
   "version": "1",
   "background": {
-    "service_worker": "background-worker.js",
-    "type": "module"
+    "service_worker": "background-worker.min.js"
   },
   "content_scripts": [
     {
@@ -54,7 +53,9 @@
         "framework/*",
         "content/*",
         "wwwroot/*",
-        "app.js"
+        "app.js",
+        "js/install-cp-debug-btn.js",
+        "js/utils.js"
       ],
       "matches": [
         "*://*/*"

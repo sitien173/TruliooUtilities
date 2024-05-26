@@ -5,26 +5,18 @@ using TruliooExtension.Model;
 
 namespace TruliooExtension.Shared;
 
-public partial class Select : ComponentBase, IAsyncDisposable
+public partial class Select : ComponentBase
 {
     private Lazy<IJSObjectReference> _accessorJsRef = new ();
-    [Inject] private IJSRuntime _jsRuntime { get; set; }
+    [Inject] private IJSRuntime JSRuntime { get; set; }
     [Parameter] public EventCallback<string> Callback { get; set; }
-    [Parameter] public IEnumerable<KeyValuePair<string, string>> Items { get; set; }
+    [Parameter] public IEnumerable<KeyValuePair<string, string>> Items { get; set; } = [];
     [Parameter] public string SelectedValue { get; set; }
-    [Parameter] public IEnumerable<string> Excludes { get; set; } = Enumerable.Empty<string>();
+    [Parameter] public IEnumerable<string> Excludes { get; set; } = [];
 
     private static Func<string, Task> _callbackAction;
-    private IEnumerable<SelectOption> _options;
+    private IEnumerable<SelectOption> _options = [];
     private string _id = Guid.NewGuid().ToString();
-    
-    private async Task WaitForReference()
-    {
-        if (_accessorJsRef.IsValueCreated is false)
-        {
-            _accessorJsRef = new Lazy<IJSObjectReference>(await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Shared/Select.razor.js"));
-        }
-    }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -49,29 +41,23 @@ public partial class Select : ComponentBase, IAsyncDisposable
             }
         }
     }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_accessorJsRef.IsValueCreated)
-        {
-            await _accessorJsRef.Value.DisposeAsync();
-        }
-    }
     
-    protected override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
         _callbackAction = async val => await Callback.InvokeAsync(val);
-        return base.OnInitializedAsync();
+        await base.OnInitializedAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "../lib/select2/select2.min.js");
-            await WaitForReference();
-            
-            var json = JsonSerializer.Serialize(_options, Program.SerializerOptions);
+            var json = JsonSerializer.Serialize(_options);
+            if (_accessorJsRef.IsValueCreated is false)
+            {
+                _accessorJsRef = new Lazy<IJSObjectReference>(await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Shared/Select.razor.js"));
+            }
+            await JSRuntime.InvokeVoidAsync("import", "./lib/select2/select2.min.js");
             await _accessorJsRef.Value.InvokeVoidAsync("initSelect2", _id, json);
         }
         

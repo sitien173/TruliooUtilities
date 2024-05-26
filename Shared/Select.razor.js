@@ -1,9 +1,11 @@
-﻿$.fn.modal.Constructor.prototype.enforceFocus = function() {};
-
-export function initSelect2(id, jsonData) {
+﻿export const  initSelect2 = (id, jsonData) => {
     const data = JSON.parse(jsonData);
     if(data.length === 0)
         return;
+    
+    try {
+        $.fn.modal.Constructor.prototype.enforceFocus = function() {};
+    }catch (e) {}
     
     const $select = $('#' + id);
     $select.select2({
@@ -12,7 +14,7 @@ export function initSelect2(id, jsonData) {
         data: data,
         matcher: matchCustom
     });
-
+    
     $select.on('change', async function (e) {
         const val = e.target.value;
         await DotNet.invokeMethodAsync('TruliooExtension', 'SelectChangeCallback', val);

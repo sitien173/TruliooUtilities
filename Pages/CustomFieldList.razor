@@ -9,21 +9,21 @@
     <div class="card-body">
         <ul class="list-group">
             <NavLink class="list-group-item" href="@("custom-fields/global?cultureName=Global")" Match="NavLinkMatch.All">
-                <span class="badge">@_globalCustomFieldCount</span>Global
+                Global
             </NavLink>
             
-            @foreach (var (k, v) in _customFieldList)
+            @foreach (var (k, v) in _locales)
             {
                 if (k == _config.CurrentCulture)
                 {
-                    <NavLink class="list-group-item active" href="@("custom-fields/" + k + "?cultureName=" + v.Item1)" Match="NavLinkMatch.All">
-                        <span class="badge">@v.Item2</span>@v.Item1
+                    <NavLink class="list-group-item active" href="@("custom-fields/" + k + "?cultureName=" + v)" Match="NavLinkMatch.All">
+                        @v
                     </NavLink>
                 }
                 else
                 {
-                    <NavLink class="list-group-item" href="@("custom-fields/" + k + "?cultureName=" + v.Item1)" Match="NavLinkMatch.All">
-                        <span class="badge">@v.Item2</span>@v.Item1
+                    <NavLink class="list-group-item" href="@("custom-fields/" + k + "?cultureName=" + v)" Match="NavLinkMatch.All">
+                        @v
                     </NavLink>
                 }
             }

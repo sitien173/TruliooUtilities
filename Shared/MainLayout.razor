@@ -1,5 +1,6 @@
 ﻿@using Humanizer
 @using Blazored.Toast
+@using Blazored.Toast.Configuration
 @inherits LayoutComponentBase
 
 <Navbar></Navbar>
@@ -26,6 +27,6 @@
                 }
             </ErrorContent>
         </ErrorBoundary>
+        <BlazoredToasts RemoveToastsOnNavigation="true" Position="ToastPosition.BottomRight"/>
     </div>
 </div>
-<BlazoredToasts RemoveToastsOnNavigation="true"/>

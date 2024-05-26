@@ -1,19 +1,22 @@
-﻿<div class="panel-body">
-    <strong>@Field.DataField</strong>
-    <div class="custom-field-buttons">
-        <button type="button" class="btn btn-sm btn-link" @onclick="() => Edit(Field.DataField)">
-            <img src="images/edit.svg" width="12" height="12" alt="Edit">
-        </button>
-        <button type="button" class="btn btn-sm btn-link" @onclick="() => Delete(Field.DataField)">
-            <img src="images/delete.svg" width="12" height="12" alt="Delete">
-        </button>
+﻿@if (Field.IsCustomize)
+{
+    <div class="panel-body">
+        <strong>@Field.DataField</strong>
+        <div class="custom-field-buttons">
+            <button type="button" class="btn btn-sm btn-link" @onclick="Edit">
+                <img src="images/edit.svg" width="12" height="12" alt="Edit">
+            </button>
+            <button type="button" class="btn btn-sm btn-link" @onclick="Delete">
+                <img src="images/delete.svg" width="12" height="12" alt="Delete">
+            </button>
+        </div>
     </div>
-</div>
-<table class="table">
-    <tbody>
-    <tr><td>Match</td><td>@Field.Match</td></tr>
-    <tr><td>StaticValue</td><td>@Field.StaticValue</td></tr>
-    <tr><td>Template</td><td>@Field.Template</td></tr>
-    <tr><td>Ignore</td><td>@Field.IsIgnore</td></tr>
-    </tbody>
-</table>
+    <table class="table">
+        <tbody>
+        <tr><td>Match</td><td>@Field.Match</td></tr>
+        <tr><td>StaticValue</td><td>@Field.StaticValue</td></tr>
+        <tr><td>Template</td><td>@Field.Template</td></tr>
+        <tr><td>Ignore</td><td>@Field.IsIgnore</td></tr>
+        </tbody>
+    </table>
+}

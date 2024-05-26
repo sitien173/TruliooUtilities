@@ -6,10 +6,7 @@ public class GlobalConfiguration
 {
     [Required] 
     public string CurrentCulture { get; set; } = "en";
-    
-    [Required]
+    public string MatchTemplate { get; set; } = ConstantStrings.CustomFieldMatchTemplate;
     [Url]
-    public string Endpoint { get; set; } = "https://localhost:44331";
-    
-    public bool EnableDebugButton { get; set; }
+    public string AdminPortalEndpoint { get; set; } = ConstantStrings.AdminPortalEndpoint;
 }

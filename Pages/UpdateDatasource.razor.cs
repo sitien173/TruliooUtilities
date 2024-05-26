@@ -2,36 +2,26 @@
 using Blazored.Toast.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using TruliooExtension.Model;
 using TruliooExtension.Services;
 
 namespace TruliooExtension.Pages;
 
-public partial class GlobalConfiguration
-    : BasePage, IAsyncDisposable
+public partial class UpdateDatasource : BasePage, IAsyncDisposable
 {
     [Inject] private IJSRuntime JSRuntime { get; set; }
     [Inject] private IToastService ToastService { get; set; }
-    [Inject] private ILocaleService LocaleService { get; set; }
-    [Inject] private IGlobalConfigurationService GlobalConfigurationService { get; set; }
-    [Inject] private ICustomFieldGroupService CustomFieldGroupService { get; set; }
+    [Inject] private IUpdateDatasourceService UpdateDatasourceService { get; set; }
     
     private bool IsLoading { get; set; }
     private Lazy<IJSObjectReference> _accessorJsRef = new ();
-    private Model.GlobalConfiguration _model = new ();
-    private IReadOnlyDictionary<string, string> _locales = new Dictionary<string, string>();
+    private Datasource? _model = new ();
+    private int _fetchDatasourceId;
+    
     protected override async Task OnInitializedAsync()
     {
-        _locales = await LocaleService.GetLocalesAsync();
-        _model = await GlobalConfigurationService.GetAsync();
-
-        if (_model == null)
-        {
-            _model = new Model.GlobalConfiguration();
-            
-            await GlobalConfigurationService.SaveAsync(_model);
-            await CustomFieldGroupService.RefreshAsync(_model.CurrentCulture);
-        }
-        
+        _model = await UpdateDatasourceService.GetLastUpdatedDatasourceAsync();
+        _fetchDatasourceId = _model?.ID ?? 0;
         await base.OnInitializedAsync();
     }
 
@@ -47,7 +37,7 @@ public partial class GlobalConfiguration
     {
         if (_accessorJsRef.IsValueCreated is false)
         {
-            _accessorJsRef = new Lazy<IJSObjectReference>(await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/GlobalConfiguration.razor.js"));
+            _accessorJsRef = new Lazy<IJSObjectReference>(await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/UpdateDatasource.razor.js"));
         }
         
         await base.OnAfterRenderAsync(firstRender);
@@ -60,13 +50,23 @@ public partial class GlobalConfiguration
             IsLoading = true;
             await Task.Delay(10);
 
-            await GlobalConfigurationService.SaveAsync(_model);
-            await CustomFieldGroupService.RefreshAsync(_model.CurrentCulture);
+            await UpdateDatasourceService.SaveAsync(_model!);
             ToastService.ShowSuccess("Saved successfully");
         }
         finally
         {
             IsLoading = false;
         }
+    }
+
+    public async Task FetchDatasource()
+    {
+        if(_fetchDatasourceId == 0)
+        {
+            ToastService.ShowError("Please enter a valid datasource id");
+            return;
+        }
+        _model = await UpdateDatasourceService.GetAsync(_fetchDatasourceId);
+        StateHasChanged();
     }
 }

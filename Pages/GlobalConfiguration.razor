@@ -15,19 +15,18 @@
                 <Select Items="_locales" SelectedValue="@_model.CurrentCulture" Callback="(val) => { _model.CurrentCulture = val; }"></Select>
                 <InputText @bind-Value="_model.CurrentCulture" hidden />
             </div>
+
+            <div class="mb-3">
+                <label class="form-label">Match Template</label>
+                <InputText class="form-control" @bind-Value="_model.MatchTemplate" />
+            </div>
             
             <div class="mb-3">
-                <label class="form-label">Update Datasource Endpoint</label>
-                <InputText @bind-Value="_model.Endpoint" class="form-control"/>
-                <ValidationMessage For="() => _model.Endpoint"/>
+                <label class="form-label">Admin Portal Endpoint</label>
+                <InputText class="form-control" @bind-Value="_model.AdminPortalEndpoint" />
+                <ValidationMessage For="@(() => _model.AdminPortalEndpoint)" />
             </div>
             
-            <div class="checkbox mb-3">
-                <label class="form-label">
-                    <InputCheckbox @bind-Value="_model.EnableDebugButton" /> Enable Debug Button
-                </label>
-            </div>
-
             <div class="mb-3 text-center">
                 @if (IsLoading)
                 {

@@ -1,8 +1,4 @@
-﻿using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Text.Unicode;
-using Blazor.BrowserExtension;
+﻿using Blazor.BrowserExtension;
 using Blazored.Toast.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -13,11 +9,6 @@ namespace TruliooExtension
 {
     public static class Program
     {
-        public static readonly JsonSerializerOptions? SerializerOptions = new()
-        {
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
-            Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
-        };
         public static async Task Main(string[] args)
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -38,25 +29,19 @@ namespace TruliooExtension
             builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
             builder.Services.AddScoped<IStorageService, StorageService>();
             builder.Services.AddScoped<ICustomFieldGroupService, CustomFieldGroupService>();
-            builder.Services.AddScoped<ICustomFieldService, CustomFieldService>();
             builder.Services.AddScoped<ILocaleService, LocaleService>();
             builder.Services.AddScoped<IGlobalConfigurationService, GlobalConfigurationService>();
             builder.Services.AddScoped<IToastService, ToastService>();
-            builder.Services.AddScoped<IUpdateDsEndpointService, UpdateDsEndpointService>();
+            builder.Services.AddScoped<IUpdateDatasourceService, UpdateDatasourceService>();
             var host = builder.Build();
             
-            var storageService = host.Services.GetRequiredService<IStorageService>();
-            await storageService.ClearAsync();
-            
-            var globalConfigurationService = host.Services.GetRequiredService<IGlobalConfigurationService>();
-            await globalConfigurationService.InitializeAsync();
-            
-            var customFieldGroupService = host.Services.GetRequiredService<ICustomFieldGroupService>();
-            await customFieldGroupService.InitializeAsync();
-            
-            var updateDsEndpointService = host.Services.GetRequiredService<IUpdateDsEndpointService>();
-            await updateDsEndpointService.InitializeAsync();
-            
+            var extensionEnvironment = host.Services.GetRequiredService<IBrowserExtensionEnvironment>().Mode;
+            if (extensionEnvironment != BrowserExtensionMode.ContentScript)
+            {
+                // Initialize services
+                await host.Services.GetRequiredService<IGlobalConfigurationService>().InitializeAsync();
+                await host.Services.GetRequiredService<ICustomFieldGroupService>().InitializeAsync();
+            }
             await host.RunAsync();
         }
     }

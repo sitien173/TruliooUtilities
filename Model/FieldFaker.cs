@@ -6,8 +6,9 @@ namespace TruliooExtension.Model;
 public sealed class FieldFaker : Faker<FieldFaker>
 {
     public FieldFaker() : base()
-    {
-    }
+    { }
+    
+    
 
     private FieldFaker(string locale) : base(locale)
     {
@@ -71,6 +72,11 @@ public sealed class FieldFaker : Faker<FieldFaker>
         RuleFor(o => o.WorkTelephoneNumber, f => f.Phone.PhoneNumber());
         RuleFor(o => o.CellNumber, f => f.Phone.PhoneNumber());
         RuleFor(o => o.WorkTelephone, f => f.Phone.PhoneNumber());
+        RuleFor(o => o.Phone, f => f.Phone.PhoneNumber());
+        
+        // Email fields
+        RuleFor(o => o.EmailAddress, f => f.Internet.Email());
+        RuleFor(o => o.Email, f => f.Internet.Email());
         
         // Date of birth fields
         RuleFor(o => o.DayOfBirth, f => f.Date.Past().Day.ToString());
@@ -104,7 +110,7 @@ public sealed class FieldFaker : Faker<FieldFaker>
 
         foreach (var customFieldGlobal in customFieldGroupGlobal.CustomFields)
         {
-            int index = customFieldGroup.CustomFields.FindIndex(x => x.DataField == customFieldGlobal.DataField);
+            int index = customFieldGroup.CustomFields.FindIndex(x => x.DataField == customFieldGlobal.DataField && !x.IsIgnore);
             if (index >= 0)
             {
                 customFieldGroup.CustomFields[index] = customFieldGlobal;
@@ -135,7 +141,6 @@ public sealed class FieldFaker : Faker<FieldFaker>
     
         return faker.Generate();
     }
-    
     
     public string FirstName { get; set; }
     public string MiddleName { get; set; }

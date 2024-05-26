@@ -1,11 +1,8 @@
 ﻿export function closeModal() {
     $('button.close').click();
+    $('.modal-backdrop').remove();
 }
 
 export function openModal() {
-    const $model = $('#customFieldGroupModal');
-    if($model)
-    {
-        $model.modal('show');
-    }
+    $('#customFieldGroupModal').modal('show');
 }

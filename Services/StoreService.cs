@@ -1,40 +1,67 @@
-﻿using System.Text.Json;
-using Humanizer;
-using WebExtensions.Net;
+﻿using Microsoft.JSInterop;
 
 namespace TruliooExtension.Services;
 
 public interface IStorageService
 {
-    Task<T> GetAsync<T>(string key);
-    Task SetAsync<T>(string key, T value);
-    Task ClearAsync();
+    Task<TValue?> GetAsync<TKey, TValue>(string instanceName, TKey key);
+    Task SetAsync<TKey, TValue>(string instanceName, TKey key, TValue value);
+    Task<List<T>> GetAllAsync<T>(string instanceName);
+    Task<int> NextIdAsync(string instanceName);
+    Task<T?> FirstOrDefaultAsync<T>(string instanceName, Func<T, bool> predicate);
 }
 
-public class StorageService(IWebExtensionsApi webApi, ILogger<IStorageService> logger) : IStorageService
+public class StorageService(IJSRuntime jsRuntime) : IStorageService, IAsyncDisposable
 {
-    public async Task<T> GetAsync<T>(string key)
+    private Lazy<IJSObjectReference> _module = new();
+    
+    private async ValueTask WaitForReferenceAsync()
     {
-        var result = await webApi.Storage.Local.Get(key);
-        try
+        if (!_module.IsValueCreated)
         {
-            return result.Deserialize<T>();
-        }
-        catch (Exception e)
-        {
-            logger.LogError("Failed to get value from storage: {Message}", e.Message.Humanize());
-            return default;
+            _module = new Lazy<IJSObjectReference>(await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/storage-service.js"));
         }
     }
-
-    public async Task SetAsync<T>(string key, T value)
+    
+    public async Task<TValue?> GetAsync<TKey, TValue>(string instanceName, TKey key)
     {
-        logger.LogInformation("Setting value in storage: {Key}={Value}", key, value);
-        await webApi.Storage.Local.Set(new KeyValuePair<string,T>(key, value));
+        await WaitForReferenceAsync();
+        var result = await _module.Value.InvokeAsync<TValue>("getItem", instanceName, key);
+        return result;
     }
 
-    public async Task ClearAsync()
+    public async Task SetAsync<TKey, TValue>(string instanceName, TKey key, TValue value)
     {
-        await webApi.Storage.Local.Clear();
+        await WaitForReferenceAsync();
+        await _module.Value.InvokeVoidAsync("setItem", instanceName, key, value);
+    }
+
+    public async Task<List<T>> GetAllAsync<T>(string instanceName)
+    {
+        await WaitForReferenceAsync();
+        var result = await _module.Value.InvokeAsync<List<T>>("getAll", instanceName);
+        return result;
+    }
+
+    public async Task<int> NextIdAsync(string instanceName)
+    {
+        await WaitForReferenceAsync();
+        var result = await _module.Value.InvokeAsync<int>("nextId", instanceName);
+        return result;
+    }
+    
+    public async Task<T?> FirstOrDefaultAsync<T>(string instanceName, Func<T, bool> predicate)
+    {
+        await WaitForReferenceAsync();
+        var result = await GetAllAsync<T>(instanceName);
+        return result.FirstOrDefault(predicate);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module.IsValueCreated)
+        {
+            await _module.Value.DisposeAsync();
+        }
     }
 }

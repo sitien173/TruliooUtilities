@@ -7,25 +7,20 @@
         {
             <div class="checkbox">
                 <label class="form-label">
-                    <InputCheckbox @bind-Value="_currentCustomFieldGroup.Enable" /> Enable
+                    <InputCheckbox @bind-Value="_customFieldGroup.Enable" /> Enable
                 </label>
             </div>
         }
-    </div>
-    @if (!_currentCustomFieldGroup.CustomFields.Any())
-    {
-        <div class="panel-body">
-            <div class="well well-sm">No custom fields found.</div>
-        </div>
-    }
-    <div class="panel-body">
-        @foreach(var field in _currentCustomFieldGroup.CustomFields)
-        {
-        <CustomFieldDetail Field="field" EditHandler="HandleEdit" DeleteHandler="HandleDelete"></CustomFieldDetail>
-        }
-        <button type="button" class="btn btn-default" @onclick="HandleAddNew">
+
+        <button type="button" class="btn btn-default" @onclick="PrepareAdd">
             Add Field
         </button>
+    </div>
+    <div class="panel-body">
+        @for (var i = 0; i < _customFieldGroup.CustomFields.Count; i++)
+        {
+            <CustomFieldDetail Index="@i" Field="_customFieldGroup.CustomFields[i]" EditHandler="PrepareEdit" DeleteHandler="HandleDelete"></CustomFieldDetail>
+        }
     </div>
     <div class="panel-footer">
         <NavLink Match="NavLinkMatch.All" class="btn btn-default" href="/custom-fields">Back</NavLink>
@@ -40,58 +35,57 @@
     </div>
 </div>
 
-@if (_isAdd || _isEdit)
-{
-    <div class="modal fade" id="customFieldGroupModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+<div class="modal fade" id="customFieldGroupModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <EditForm Model="_model" OnSubmit="OnSubmit">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-                <h4 class="modal-title" id="modalLabel">@(_isAdd ? "Add" : "Edit") Field</h4>
-            </div>
-            <div class="modal-body">
-                <DataAnnotationsValidator/>
+                <InputText hidden @bind-Value="_model.GenerateValue"></InputText>
+                <InputCheckbox hidden @bind-Value="_model.IsCustomize"></InputCheckbox>
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="modalLabel">@(_isAdd ? "Add" : "Edit") Field</h4>
+                </div>
+                <div class="modal-body">
+                    <DataAnnotationsValidator/>
 
-                <div class="mb-3">
-                    <label class="form-label">DataField</label>
-                    <Select Items="_dataFields" SelectedValue="@_model.DataField" Excludes="ExcludesDataFields" Callback="ChangeDataField"></Select>
-                    <InputText @bind-Value="_model.DataField" hidden/>
-                </div>
+                    <div class="mb-3">
+                        <label class="form-label">DataField</label>
+                        <Select Items="_dataFields" SelectedValue="@_model.DataField" Excludes="ExcludesDataFields" Callback="ChangeDataField"></Select>
+                        <InputText @bind-Value="_model.DataField" hidden/>
+                    </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Match</label>
-                    <InputText @bind-Value="_model.Match" class="form-control"/>
-                    <ValidationMessage For="() => _model.Match"/>
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">StaticValue</label>
-                    <InputText @bind-Value="_model.StaticValue" class="form-control"/>
-                    <ValidationMessage For="() => _model.StaticValue"/>
-                </div>
+                    <div class="mb-3">
+                        <label class="form-label">Match</label>
+                        <InputText @bind-Value="_model.Match" class="form-control"/>
+                        <ValidationMessage For="() => _model.Match"/>
+                    </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Template</label>
-                    <InputText @bind-Value="_model.Template" class="form-control"/>
-                    <ValidationMessage For="() => _model.Template"/>
-                </div>
+                    <div class="mb-3">
+                        <label class="form-label">StaticValue</label>
+                        <InputText @bind-Value="_model.StaticValue" class="form-control"/>
+                        <ValidationMessage For="() => _model.StaticValue"/>
+                    </div>
 
-                <div class="mb-3">
-                    <label class="form-label">
-                        <InputCheckbox @bind-Value="_model.IsIgnore" /> Ignore
-                    </label>
+                    <div class="mb-3">
+                        <label class="form-label">Template</label>
+                        <InputText @bind-Value="_model.Template" class="form-control"/>
+                        <ValidationMessage For="() => _model.Template"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <InputCheckbox @bind-Value="_model.IsIgnore"/> Ignore
+                        </label>
+                    </div>
+
                 </div>
-                
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="submit" class="btn btn-primary">Save</button>
-            </div>
+                <div class="modal-footer">
+                    <button id="close-modal" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
             </EditForm>
         </div>
     </div>
 </div>
-}

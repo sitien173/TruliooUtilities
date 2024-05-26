@@ -4,75 +4,91 @@ namespace TruliooExtension.Services;
 
 public interface ICustomFieldGroupService
 {
-    Task<List<CustomFieldGroup>> GetAsync();
-    Task<CustomFieldGroup> GetAsync(string culture);
-    Task SaveAsync(IEnumerable<CustomFieldGroup> customFieldGroups);
+    Task<CustomFieldGroup?> GetAsync(string culture);
     Task SaveAsync(CustomFieldGroup customFieldGroup);
-    Task UpdateAsync(string culture, CustomFieldGroup customFieldGroup);
+    Task RefreshAsync(string culture);
     Task InitializeAsync();
 }
 
-public class CustomFieldGroupService(IStorageService storageService, ILocaleService localeService) : ICustomFieldGroupService
+public class CustomFieldGroupService(IStorageService storageService, IGlobalConfigurationService configService)
+    : ICustomFieldGroupService
 {
-    private const string _customFieldGroupsKey = "CustomFieldGroups";
-
-    public async Task<List<CustomFieldGroup>> GetAsync()
+    public async Task<CustomFieldGroup?> GetAsync(string culture)
     {
-        var result = await storageService.GetAsync<List<CustomFieldGroup>>(_customFieldGroupsKey);
-        return result ?? [];
+        var result = await storageService.GetAsync<string, CustomFieldGroup>(nameof(CustomFieldGroup), culture);
+        return result;
     }
 
-    public async Task<CustomFieldGroup> GetAsync(string culture)
+    private async Task<List<CustomField>> GetCustomFieldsAsync(CustomFieldGroup customFieldGroup, CustomFieldGroup customFieldGroupGlobal)
     {
-        var customFieldGroups = await GetAsync();
-        return customFieldGroups.Find(x => x.Culture == culture) ?? new CustomFieldGroup();
+        var customFields = new List<CustomField>();
+
+        var fieldFaker = FieldFaker.GenerateWithCustomFieldGroup(customFieldGroupGlobal, customFieldGroup);
+        var properties = fieldFaker.GetType().GetProperties();
+        var config = await configService.GetAsync();
+        foreach (var property in properties)
+        {
+            var val = property.GetValue(fieldFaker)?.ToString();
+            if (string.IsNullOrEmpty(val))
+                continue;
+
+            var customField = customFieldGroup.CustomFields
+                .Concat(customFieldGroupGlobal.CustomFields)
+                .LastOrDefault(x => x.IsCustomize && x.DataField == property.Name);
+            
+            
+            var match = customField?.Match ?? config?.MatchTemplate ?? ConstantStrings.CustomFieldMatchTemplate;
+            match = string.Format(match, property.Name);
+
+            customFields.Add(new CustomField
+            {
+                DataField = property.Name,
+                Match = match,
+                GenerateValue = val,
+                StaticValue = customField?.StaticValue,
+                Template = customField?.Template,
+                IsIgnore = customField?.IsIgnore ?? false,
+                IsCustomize = customField?.IsCustomize ?? false
+            });
+        }
+
+        return customFields;
     }
 
-    public Task SaveAsync(IEnumerable<CustomFieldGroup> customFieldGroups) =>
-        storageService.SetAsync(_customFieldGroupsKey, customFieldGroups);
 
     public async Task SaveAsync(CustomFieldGroup customFieldGroup)
     {
-        var customFieldGroups = await GetAsync();
-        var existingCustomFieldGroup = customFieldGroups.Find(x => x.Culture == customFieldGroup.Culture);
-
-        if (existingCustomFieldGroup is null)
-        {
-            customFieldGroups.Add(customFieldGroup);
-        }
-        else
-        {
-            existingCustomFieldGroup = customFieldGroup;
-        }
-
-        await SaveAsync(customFieldGroups);
+        await storageService.SetAsync(nameof(CustomFieldGroup), customFieldGroup.Culture, customFieldGroup);
     }
 
-    public async Task UpdateAsync(string culture, CustomFieldGroup customFieldGroup)
+    public async Task RefreshAsync(string culture)
     {
-        var customFieldGroups = await GetAsync();
-        var existingCustomFieldGroup = customFieldGroups.Find(x => x.Culture == culture);
-
-        if (existingCustomFieldGroup is null)
+        if (culture == "global")
+            return;
+        
+        var customFieldGroup = await GetAsync(culture) ?? new CustomFieldGroup()
         {
-            customFieldGroups.Add(customFieldGroup);
-        }
-        else
+            Culture = culture,
+            Enable = true
+        };
+        
+        var customFieldGroupGlobal = await GetAsync("global") ?? new CustomFieldGroup()
         {
-            existingCustomFieldGroup = customFieldGroup;
-        }
-
-        await SaveAsync(customFieldGroups);
+            Culture = "global",
+            Enable = true
+        };
+        
+        customFieldGroup.CustomFields = await GetCustomFieldsAsync(customFieldGroup, customFieldGroupGlobal);
+        await SaveAsync(customFieldGroup);
     }
 
     public async Task InitializeAsync()
     {
-        var customFieldGroups = await GetAsync();
-        if (customFieldGroups.Count == 0)
-        {
-            var locales = await localeService.GetLocalesAsync();
-            customFieldGroups.AddRange(locales.Select(locale => new CustomFieldGroup() { Culture = locale.Key, CustomFields = [] }));
-            await SaveAsync(customFieldGroups);
-        }
+        var config = await configService.GetAsync();
+        if (config == null)
+            return;
+        
+        var cultures = config.CurrentCulture;
+        await RefreshAsync(cultures);
     }
 }
