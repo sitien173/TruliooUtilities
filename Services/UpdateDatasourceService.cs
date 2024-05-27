@@ -11,30 +11,23 @@ public interface IUpdateDatasourceService {
     Task SaveAsync(Datasource datasource);
 }
 
-public class UpdateDatasourceService : IUpdateDatasourceService
+public class UpdateDatasourceService(
+    HttpClient httpClient,
+    IGlobalConfigurationService globalConfigurationService,
+    ILogger<UpdateDatasourceService> logger,
+    IToastService toastService,
+    IStorageService storageService)
+    : IUpdateDatasourceService
 {
-    private readonly HttpClient _httpClient;
-    private readonly IGlobalConfigurationService _globalConfigurationService;
-    private readonly ILogger<IUpdateDatasourceService> _logger;
-    private readonly IToastService _toastService;
-    private readonly IStorageService _storageService;
-
-    public UpdateDatasourceService(HttpClient httpClient, IGlobalConfigurationService globalConfigurationService, ILogger<UpdateDatasourceService> logger, IToastService toastService, IStorageService storageService)
-    {
-        _httpClient = httpClient;
-        _globalConfigurationService = globalConfigurationService;
-        _logger = logger;
-        _toastService = toastService;
-        _storageService = storageService;
-    }
+    private readonly ILogger<IUpdateDatasourceService> _logger = logger;
 
     public async Task<Datasource> GetAsync(int datasourceID)
     {
-        var config = await _globalConfigurationService.GetAsync();
+        var config = await globalConfigurationService.GetAsync();
         
         if(config == null)
         {
-            _toastService.ShowError("Global configuration not found");
+            toastService.ShowError("Global configuration not found");
             return null;
         }
         Datasource? datasource = new();
@@ -43,20 +36,20 @@ public class UpdateDatasourceService : IUpdateDatasourceService
             var uriBuilder = new UriBuilder(config.AdminPortalEndpoint);
             uriBuilder.Path += $"api-datasources/get/{datasourceID}";
 
-            datasource = await _httpClient.GetFromJsonAsync<Datasource>(uriBuilder.Uri);
-            await _storageService.SetAsync(ConstantStrings.SettingTable, "LastFetchDatasourceID", datasourceID.ToString());
+            datasource = await httpClient.GetFromJsonAsync<Datasource>(uriBuilder.Uri);
+            await storageService.SetAsync(ConstantStrings.SettingTable, "LastFetchDatasourceID", datasourceID.ToString());
         }
         catch (Exception e)
         {
             _logger.LogWarning(e, "Failed to get datasource id {DatasourceID}", datasourceID);
-            _toastService.ShowError("Failed to get datasourceID {datasourceID}. " + e.Message.Humanize());
+            toastService.ShowError("Failed to get datasourceID {datasourceID}. " + e.Message.Humanize());
         }
         return datasource;
     }
 
     public async Task<Datasource> GetLastUpdatedDatasourceAsync()
     {
-        var datasourceID = await _storageService.GetAsync<string, string>(ConstantStrings.SettingTable,"LastFetchDatasourceID");
+        var datasourceID = await storageService.GetAsync<string, string>(ConstantStrings.SettingTable,"LastFetchDatasourceID");
         if(string.IsNullOrEmpty(datasourceID))
         {
             return null;
@@ -67,11 +60,11 @@ public class UpdateDatasourceService : IUpdateDatasourceService
 
     public async Task SaveAsync(Datasource datasource)
     {
-        var config = await _globalConfigurationService.GetAsync();
+        var config = await globalConfigurationService.GetAsync();
         
         if(config == null)
         {
-            _toastService.ShowError("Global configuration not found");
+            toastService.ShowError("Global configuration not found");
             return;
         }
 
@@ -80,13 +73,13 @@ public class UpdateDatasourceService : IUpdateDatasourceService
             var uriBuilder = new UriBuilder(config.AdminPortalEndpoint);
             uriBuilder.Path += "api-datasources/update";
 
-            await _httpClient.PutAsJsonAsync(uriBuilder.Uri, datasource);
-            await _storageService.SetAsync(ConstantStrings.SettingTable, "LastUpdatedDatasourceID", datasource.ID);
+            await httpClient.PutAsJsonAsync(uriBuilder.Uri, datasource);
+            await storageService.SetAsync(ConstantStrings.SettingTable, "LastUpdatedDatasourceID", datasource.ID);
         }
         catch (Exception e)
         {
             _logger.LogWarning(e, "Failed to save datasource id {DatasourceID}", datasource.ID);
-            _toastService.ShowError($"Failed to save datasourceID {datasource.ID}. " + e.Message.Humanize());
+            toastService.ShowError($"Failed to save datasourceID {datasource.ID}. " + e.Message.Humanize());
         }
     }
 }

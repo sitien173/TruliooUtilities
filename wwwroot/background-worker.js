@@ -81,6 +81,7 @@ browser.runtime.onInstalled.addListener(async () => {
 
 // Add event listeners to menu items
 browser.contextMenus.onClicked.addListener(async (info, tab) => {
+    // send message to mark content script enable loading spinner
     switch (info.menuItemId) {
         case "pasteToCp":
             pasteData(tab.id);
@@ -150,8 +151,9 @@ function setDefaultValueProperties(csharpCodeClass)
 
 function standardizeIdProperty(csharpCodeClass) {
     // Replace Id with ID
-    csharpCodeClass = csharpCodeClass.replace(/(\w+)(Id)(\s*{\s*get;\s*set;\s*})/gi, "$1ID$3");
-
+    csharpCodeClass = csharpCodeClass.replace(/public\s*(\w+)\s*(id|\w+id|id\w+)\s*\{\s*get;\s*set;\s*}/gi, (match, p1, p2) => {
+        return `public ${p1} ${p2.replace(/id/i, 'ID')} { get; set; }`;
+    });
     return csharpCodeClass;
 }
 

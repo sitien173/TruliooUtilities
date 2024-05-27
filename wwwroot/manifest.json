@@ -55,7 +55,9 @@
         "wwwroot/*",
         "app.js",
         "js/install-cp-debug-btn.js",
-        "js/utils.js"
+        "js/utils.js",
+        "node_modules/jquery/dist/jquery.min.js",
+        "node_modules/jquery-easy-loading/dist/jquery.loading.min.js"
       ],
       "matches": [
         "*://*/*"

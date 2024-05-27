@@ -1,22 +1,12 @@
 ﻿using System.Collections;
 using System.Reflection;
 using System.Text;
-using CSharpier;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 
-namespace TruliooExtension.Services
+namespace TruliooExtension.Helpers
 {
-    public static class ObjectInitializerGenerator
+    public static class ObjectInitializerHelper
     {
-        private static readonly CodeFormatterOptions _options = new()
-        {
-            Width = 250,
-            IndentSize = 2,
-            EndOfLine = EndOfLine.Auto,
-            IndentStyle = IndentStyle.Tabs
-        };
-        public static string ObjectInitializer<T>(T? obj, CodeFormatterOptions? options = null)
+        public static string ObjectInitializer<T>(T? obj)
         {
             if (obj == null)
                 return string.Empty;
@@ -32,21 +22,7 @@ namespace TruliooExtension.Services
             
             sb.Append(';');
             
-            string result = sb.ToString();
-            
-            options ??= _options;
-            CodeFormatterResult format = CodeFormatter.Format(result, options);
-            if (!format.CompilationErrors.Any()) return format.Code;
-            string errors = string.Join(Environment.NewLine, format.CompilationErrors
-                .Where(d => d.IsWarningAsError || d.Severity == DiagnosticSeverity.Error)
-                .Select(d =>
-                {
-                    LinePosition position = d.Location.GetLineSpan().StartLinePosition;
-                    return $"Line {position.Line}, Col {position.Character}: {d.Id} - {d.GetMessage()}";
-                }));
-
-            return errors;
-
+            return CodeFormatterHelper.FormatCode(sb.ToString());
         }
 
         private static void GenerateObjectInitializer(StringBuilder sb, object? obj)
@@ -94,17 +70,14 @@ namespace TruliooExtension.Services
                 case Enum enumValue when enumValue.GetType().IsEnumDefined(enumValue):
                     sb.Append($"{enumValue.GetType().Name}.{Enum.Parse(enumValue.GetType(), enumValue.ToString()).ToString()},");
                     break;
-                case DateTime dateTimeValue:
-                    sb.Append($"DateTime.Parse(\"{dateTimeValue}\"),");
-                    break;
-                case DateTimeOffset dateTimeOffsetValue:
-                    sb.Append($"DateTimeOffset.Parse(\"{dateTimeOffsetValue}\"),");
+                case DateTime:
+                case DateTimeOffset:
+                case Guid:
+                    var type = propValue.GetType().Name;
+                    sb.Append($"{type}.Parse(\"{propValue}\"),");
                     break;
                 case bool boolValue:
                     sb.Append(boolValue.ToString().ToLower() + ",");
-                    break;
-                case Guid guid:
-                    sb.Append("Guid.Parse(\"" + guid + "\"),");
                     break;
                 case Uri uri:
                     sb.Append("new Uri(\"" + uri + "\"),");
@@ -125,22 +98,30 @@ namespace TruliooExtension.Services
         {
             var enumerableType = enumerable.GetType().GetGenericArguments().Length != 0 ? enumerable.GetType().GetGenericArguments()[0] : enumerable.GetType().GetElementType();
             
-            string enumerableTypeName = enumerableType.Name;
+            string enumerableTypeName = enumerableType!.Name;
             if (enumerableType == typeof(string) || enumerableTypeName == "Object")
             {
                 enumerableTypeName = enumerableType.Name.ToLower();
             }
             
             var items = enumerable.Cast<object>().ToList();
-
+            bool isArray = enumerable.GetType().IsArray;
             if (items.Count == 0)
             {
-                sb.Append($"new List<{enumerableTypeName}>(){{}},");
+                var prefix = isArray ? "Array.Empty" : "new List";
+                sb.Append($"{prefix}<{enumerableTypeName}>(),");
                 return;
             }
 
-            sb.Append($"new List<{enumerableTypeName}>(){{");
-
+            if (isArray)
+            {
+                sb.Append($"new {enumerableTypeName}[]{{");
+            }
+            else
+            {
+                sb.Append($"new List<{enumerableTypeName}>(){{");
+            }
+            
             for (int i = 0; i < items.Count; i++)
             {
                 GeneratePropertyValue(sb, items[i]);

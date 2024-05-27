@@ -1,5 +1,7 @@
-﻿import * as __ from './js/install-cp-debug-btn.js';
-import * as ____ from './js/utils.js';
+﻿import * as _ from './js/install-cp-debug-btn.js';
+import * as __ from './js/utils.js';
+import * as ___ from './node_modules/jquery/dist/jquery.min.js';
+import * as ____ from './node_modules/jquery-easy-loading/dist/jquery.loading.min.js';
 
 /**
  * Called before Blazor starts.
@@ -24,6 +26,8 @@ export async function beforeStart(options, extensions, blazorBrowserExtension) {
     
     browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         (async () => {
+            enableLoading();
+            let alertMessage;
             switch (message.action) {
                 case "PrintDSGroupVariantSetup":
                     await handleAction(message.action, 'PrintDSGroupVariantSetup', 'DS Group Variant Setup copied to clipboard');
@@ -44,10 +48,10 @@ export async function beforeStart(options, extensions, blazorBrowserExtension) {
                 case "JsonToClass":
                     if (message.status === 'ok') {
                         await navigator.clipboard.writeText(message.classCode);
-                        alert("Class copied to clipboard");
+                        alertMessage = "Class copied to clipboard";
                     } else {
                         console.error("Error generating class: " + message.message);
-                        alert("Error generating class: " + message.message);
+                        alertMessage = "Error generating class: " + message.message;
                     }
                     sendResponse();
                     break;
@@ -55,10 +59,10 @@ export async function beforeStart(options, extensions, blazorBrowserExtension) {
                     if (message.status === 'ok') {
                         const result = await DotNet.invokeMethodAsync('TruliooExtension', 'JsonToObjectInitializer', message.extensionID, message.classCode, message.json);
                         await navigator.clipboard.writeText(result);
-                        alert("Object Initializer copied to clipboard");
+                        alertMessage = "Object Initializer copied to clipboard";
                     } else {
                         console.error(message.message);
-                        alert(message.message);
+                        alertMessage = "Error generating object initializer: " + message.message;
                     }
                     sendResponse();
                     break;
@@ -67,9 +71,23 @@ export async function beforeStart(options, extensions, blazorBrowserExtension) {
                     sendResponse("Unknown action");
                     break;
             }
+            disableLoading();
+            if(alertMessage)
+                alert(alertMessage);
         })();
         return true;
     });
+}
+
+function enableLoading() {
+    $('body').loading({
+        message: 'Loading...',
+        stoppable: true
+    });
+}
+
+function disableLoading() {
+    $('body').loading('stop');
 }
 
 async function handleAction(action, methodName, alertMessage) {
