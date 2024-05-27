@@ -91,9 +91,9 @@ function disableLoading() {
 }
 
 async function handleAction(action, methodName, alertMessage) {
-    let headerElement = Array.from(document.querySelectorAll("h2")).find(h => h.textContent.includes('Datasource Group Variant Setup'));
-    let variantSetupEle = document.querySelector('#' + headerElement.id + ' + div');
-    const result = await DotNet.invokeMethodAsync('TruliooExtension', methodName, variantSetupEle.innerHTML);
+    let headerElement = $("h2:contains('Datasource Group Variant Setup')");
+    let variantSetupEle = headerElement.next("div");
+    const result = await DotNet.invokeMethodAsync('TruliooExtension', methodName, variantSetupEle.html());
     await navigator.clipboard.writeText(result);
     alert(alertMessage);
 }
