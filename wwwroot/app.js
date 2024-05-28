@@ -2,7 +2,6 @@
 import * as __ from './js/utils.js';
 import * as ___ from './node_modules/jquery/dist/jquery.min.js';
 import * as ____ from './node_modules/jquery-easy-loading/dist/jquery.loading.min.js';
-
 /**
  * Called before Blazor starts.
  * @param {object} options Blazor WebAssembly start options. Refer to https://github.com/dotnet/aspnetcore/blob/main/src/Components/Web.JS/src/Platform/WebAssemblyStartOptions.ts

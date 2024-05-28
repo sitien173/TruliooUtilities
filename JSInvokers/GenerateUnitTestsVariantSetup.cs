@@ -20,10 +20,9 @@ public static class GenerateUnitTestsVariantSetup
         int variantIndex = 0;
         foreach (var table in tables)
         {
-            var rows = table.SelectNodes(".//tr[position()>1]");
+            var rows = table.SelectNodes(".//tr");
             if (rows == null) 
                 continue;
-            
             var variants = VariantHelper.GetVariantsFromRows(rows);
             if (variants.Count != 0)
             {
@@ -38,8 +37,6 @@ public static class GenerateUnitTestsVariantSetup
     {
         StringBuilder sb = new();
         sb.AppendLine();
-        sb.AppendLine(@$"\\ variant {i + 1}");
-
         var fieldTypes = new Dictionary<string, Func<(string, bool, bool, bool, bool, string), bool>>
         {
             { "_requiredFieldsVariant", variant => variant.Item2 },
@@ -59,7 +56,7 @@ public static class GenerateUnitTestsVariantSetup
             sb.AppendLine("};");
         }
 
-        return CodeFormatterHelper.FormatCode(sb.ToString());
+        return sb.ToString();
     }
 
 }

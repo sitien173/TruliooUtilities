@@ -151,8 +151,8 @@ function setDefaultValueProperties(csharpCodeClass)
 
 function standardizeIdProperty(csharpCodeClass) {
     // Replace Id with ID
-    csharpCodeClass = csharpCodeClass.replace(/public\s*(\w+)\s*(id|\w+id|id\w+)\s*\{\s*get;\s*set;\s*}/gi, (match, p1, p2) => {
-        return `public ${p1} ${p2.replace(/id/i, 'ID')} { get; set; }`;
+    csharpCodeClass = csharpCodeClass.replace(/public\s*(\w+[?|\s])\s*(id|\w+id|id\w+)\s*\{\s*get;\s*set;\s*}/gi, (match, p1, p2) => {
+        return `public ${p1.trim()} ${p2.replace(/id/i, 'ID')} { get; set; }`;
     });
     return csharpCodeClass;
 }
@@ -214,6 +214,16 @@ async function quicktypeJSON(targetLanguage, typeName, jsonString) {
         inputData,
         lang: targetLanguage,
         indentation: "    ",
+        inferMaps: true,
+        inferEnums: false,
+        inferUuids: false,
+        alphabetizeProperties: false,
+        allPropertiesOptional: false,
+        inferDateTimes: false,
+        inferIntegerStrings: false,
+        inferBooleanStrings: true,
+        combineClasses: true,
+        ignoreJsonRefs: true,
         rendererOptions: {
             'justTypes': 'true',
             'namespace': "TruliooExtApp"
