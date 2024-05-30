@@ -1,13 +1,12 @@
 ﻿import browser from './content/Blazor.BrowserExtension/lib/browser-polyfill.js';
+import { getItem } from './storage-service.js';
+
 const {
     quicktype,
     InputData,
-    jsonInputForTargetLanguage,
-    JSONSchemaInput,
-    FetchingJSONSchemaStore} = require("quicktype-core");
-const { fillElementsByMatch } = require('./js/fill-data.js');
-const { getItem } = require('./js/storage-service.js');
+    jsonInputForTargetLanguage} = require("quicktype-core");
 const localforage = require('localforage');
+self.localforage = localforage;
 
 browser.runtime.onInstalled.addListener(async () => {
     // Initialize localforage database
@@ -84,10 +83,11 @@ browser.contextMenus.onClicked.addListener(async (info, tab) => {
     // send message to mark content script enable loading spinner
     switch (info.menuItemId) {
         case "pasteToCp":
-            pasteData(tab.id);
+            await browser.tabs.sendMessage(tab.id, { action: "PasteToCp" });
             break;
         case "fillToCp":
-            await fillData(tab.id);
+            const customFields = await getCustomFields();
+            await browser.tabs.sendMessage(tab.id, { action: "FillToCp", customFields: customFields });
             break;
         case "printDSGroupVariantSetup":
             await browser.tabs.sendMessage(tab.id, { action: "PrintDSGroupVariantSetup" });
@@ -104,88 +104,19 @@ browser.contextMenus.onClicked.addListener(async (info, tab) => {
     }
 });
 
-async function handleJsonConversion(actionType, tabId) {
-    const selectedText = await browser.tabs.sendMessage(tabId, { action: "GetSelectedText" });
-    try {
-        const json = removeNBSP(selectedText);
-        const { lines: example } = await quicktypeJSON('csharp', 'Example', json);
-        let classCode = example.join("\n");
-        classCode = setDefaultValueProperties(classCode);
-        classCode = standardizeIdProperty(classCode);
-
-        const message = {
-            action: actionType,
-            status: 'ok',
-            classCode: classCode,
-        };
-
-        if (actionType === "JsonToObjectInitializer") {
-            message.extensionID = browser.runtime.id;
-            message.json = json;
-        }
-
-        await browser.tabs.sendMessage(tabId, message);
-    } catch (e) {
-        await browser.tabs.sendMessage(tabId, { action: actionType, status: "error", message: e.message });
-    }
-}
-
-function removeNBSP(str)
-{
-    return str.replace(/\u00A0/g, '');
-}
-
-function setDefaultValueProperties(csharpCodeClass)
-{
-    // array property with default value = Array.Empty<T>()
-    csharpCodeClass = csharpCodeClass.replace(/(public\s+(\w+)\[]\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = Array.Empty<$2>();");
-    
-    // string property with default value = string.Empty
-    csharpCodeClass = csharpCodeClass.replace(/(public\s+string\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = string.Empty;");
-    
-    // Dictionary property with default value = new Dictionary<TKey, TValue>()
-    csharpCodeClass = csharpCodeClass.replace(/(public\s+Dictionary<\w+,\s*\w+>\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = new Dictionary<$2>();");
-    
-    return csharpCodeClass;
-}
-
-function standardizeIdProperty(csharpCodeClass) {
-    // Replace Id with ID
-    csharpCodeClass = csharpCodeClass.replace(/public\s*(\w+[?|\s])\s*(id|\w+id|id\w+)\s*\{\s*get;\s*set;\s*}/gi, (match, p1, p2) => {
-        return `public ${p1.trim()} ${p2.replace(/id/i, 'ID')} { get; set; }`;
-    });
-    return csharpCodeClass;
-}
-
-
-const pasteData = (tabId) => {
-    const details = {
-        target: {
-            tabId: tabId
-        },
-        files: ["js/paste-data.js"]
-    };
-    browser.scripting.executeScript(details);
-};
-
-const getCurrentTabId = async () => {
-    const tabs = await browser.tabs.query({ active: true, currentWindow: true });
-    return tabs[0].id;
-};
-
 browser.commands.onCommand.addListener((command) => {
     (async () => {
         if(command === 'fill-input'){
             const tabId = await getCurrentTabId();
-            await fillData(tabId);
+            const customFields = await getCustomFields();
+            await browser.tabs.sendMessage(tabId, { action: "FillToCp", customFields: customFields });
         }
     })();
     return true;
 });
 
 // adds a listener to tab change
-browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-
+browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     // check for a URL in the changeInfo parameter (url is only added when it is changed)
     if (changeInfo.url) {
         const url = new URL(changeInfo.url);
@@ -194,7 +125,13 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         const transactionRecordId = params.get('transactionRecordId');
         if(transactionRecordId)
         {
-            browser.tabs.sendMessage(tabId, { action: "CreateKYBButton", transactionRecordId: transactionRecordId, url: changeInfo.url});
+            if(changeInfo.url.search('eidv') > 0)
+            {
+                browser.tabs.sendMessage(tabId, { action: "CreateKYCButton", transactionRecordId: transactionRecordId });
+            }
+            else {
+                browser.tabs.sendMessage(tabId, { action: "CreateKYBButton", transactionRecordId: transactionRecordId, url: changeInfo.url});
+            }
         }
     }
 });
@@ -231,43 +168,88 @@ async function quicktypeJSON(targetLanguage, typeName, jsonString) {
     });
 }
 
-async function quicktypeJSONSchema(targetLanguage, typeName, jsonSchemaString) {
-    const schemaInput = new JSONSchemaInput(new FetchingJSONSchemaStore());
-
-    // We could add multiple schemas for multiple types,
-    // but here we're just making one type from JSON schema.
-    await schemaInput.addSource({ name: typeName, schema: jsonSchemaString });
-
-    const inputData = new InputData();
-    inputData.addInput(schemaInput);
-
-    return await quicktype({
-        inputData,
-        lang: targetLanguage
-    });
-}
-
-async function fillData(tabId){
+async function getCustomFields(){
     const config = await getConfig();
     const data = await getItem('CustomFieldGroup', config?.currentCulture || 'en');
     if(!data.enable)
+    { return []; }
+    
+    if(config.refreshOnFill)
     {
-        alert('Country is not enabled. Please enable it in the CustomFieldGroup.');
-        return;
+        const globalData = await getItem('CustomFieldGroup', 'global');
+        const tabId = await getCurrentTabId();
+        const result = await browser.tabs.sendMessage(tabId, {
+            action: "RefreshCustomFields",
+            customFieldGroup: data,
+            customFieldGroupGlobal: globalData,
+            globalConfig: config
+        });
+        
+        return result.length === 0 ? data.customFields : result;
     }
     
-    const details = {
-        target: {
-            tabId: tabId,
-            allFrames: true,
-        },
-        func : fillElementsByMatch,
-        args : [ data.customFields ],
-    };
-    browser.scripting.executeScript(details);
+    return data.customFields;
 }
 
 const getConfig = async () => {
     return await getItem('Settings', 'GlobalConfiguration');
 }
+
+async function handleJsonConversion(actionType, tabId) {
+    const selectedText = await browser.tabs.sendMessage(tabId, { action: "GetSelectedText" });
+    try {
+        const json = removeNBSP(selectedText);
+        const { lines: example } = await quicktypeJSON('csharp', 'Example', json);
+        let classCode = example.join("\n");
+        classCode = setDefaultValueProperties(classCode);
+        classCode = standardizeIdProperty(classCode);
+
+        const message = {
+            action: actionType,
+            status: 'ok',
+            classCode: classCode,
+        };
+
+        if (actionType === "JsonToObjectInitializer") {
+            message.extensionID = browser.runtime.id;
+            message.json = json;
+        }
+
+        await browser.tabs.sendMessage(tabId, message);
+    } catch (e) {
+        await browser.tabs.sendMessage(tabId, { action: actionType, status: "error", message: e.message });
+    }
+}
+
+function removeNBSP(str)
+{
+    return str.replace(/\u00A0/g, '');
+}
+
+function setDefaultValueProperties(csharpCodeClass)
+{
+    // array property with default value = Array.Empty<T>()
+    csharpCodeClass = csharpCodeClass.replace(/(public\s+(\w+)\[]\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = Array.Empty<$2>();");
+
+    // string property with default value = string.Empty
+    csharpCodeClass = csharpCodeClass.replace(/(public\s+string\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = string.Empty;");
+
+    // Dictionary property with default value = new Dictionary<TKey, TValue>()
+    csharpCodeClass = csharpCodeClass.replace(/(public\s+Dictionary<\w+,\s*\w+>\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = new Dictionary<$2>();");
+
+    return csharpCodeClass;
+}
+
+function standardizeIdProperty(csharpCodeClass) {
+    // Replace Id with ID
+    csharpCodeClass = csharpCodeClass.replace(/public\s*(\w+[?|\s])\s*(id|\w+id|id\w+)\s*\{\s*get;\s*set;\s*}/gi, (match, p1, p2) => {
+        return `public ${p1.trim()} ${p2.replace(/id/i, 'ID')} { get; set; }`;
+    });
+    return csharpCodeClass;
+}
+
+const getCurrentTabId = async () => {
+    const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+    return tabs[0].id;
+};
 

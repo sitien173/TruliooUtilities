@@ -8,8 +8,6 @@ public sealed class FieldFaker : Faker<FieldFaker>
     public FieldFaker() : base()
     { }
     
-    
-
     private FieldFaker(string locale) : base(locale)
     {
         // Name fields
@@ -79,9 +77,9 @@ public sealed class FieldFaker : Faker<FieldFaker>
         RuleFor(o => o.Email, f => f.Internet.Email());
         
         // Date of birth fields
-        RuleFor(o => o.DayOfBirth, f => f.Date.Past().Day.ToString());
-        RuleFor(o => o.MonthOfBirth, f => f.Date.Past().Month.ToString());
-        RuleFor(o => o.YearOfBirth, f => f.Date.Past().Year.ToString());
+        RuleFor(o => o.DayOfBirth, f => f.Date.Past(20).Day.ToString());
+        RuleFor(o => o.MonthOfBirth, f => f.Date.Past(20).Month.ToString());
+        RuleFor(o => o.YearOfBirth, f => f.Date.Past(20).Year.ToString());
         
         // ID fields
         RuleFor(o => o.NationalIDNumber, f => string.Join("", f.Random.Digits(11)));
@@ -101,6 +99,21 @@ public sealed class FieldFaker : Faker<FieldFaker>
         
         // Other fields
         // ....
+        
+        // KYB
+        RuleFor(o => o.BusinessName, f => f.Company.CompanyName());
+        RuleFor(o => o.BusinessRegistrationNumber, f => f.Random.AlphaNumeric(10));
+        RuleFor(o => o.DUNSNumber, f => f.Random.AlphaNumeric(9));
+        RuleFor(o => o.TradestyleName, f => f.Company.CompanyName());
+        RuleFor(o => o.JurisdictionOfIncorporation, f => f.Address.State());
+    }
+
+    public static List<string> AllFieldName()
+    {
+        return typeof(FieldFaker).GetProperties()
+            .Where(p => !(p.DeclaringType is Faker<FieldFaker>))
+            .Select(p => p.Name)
+            .ToList();
     }
     
     public static FieldFaker GenerateWithCustomFieldGroup(CustomFieldGroup customFieldGroupGlobal, CustomFieldGroup customFieldGroup)
@@ -108,19 +121,30 @@ public sealed class FieldFaker : Faker<FieldFaker>
         var faker = new FieldFaker(customFieldGroup.Culture);
         var random = new Random();
 
-        foreach (var customFieldGlobal in customFieldGroupGlobal.CustomFields)
+        MergeCustomFields(customFieldGroupGlobal, customFieldGroup);
+        ConfigureFakerRules(customFieldGroup, faker, random);
+
+        return faker.Generate();
+    }
+
+    private static void MergeCustomFields(CustomFieldGroup globalGroup, CustomFieldGroup localGroup)
+    {
+        foreach (var globalField in globalGroup.CustomFields)
         {
-            int index = customFieldGroup.CustomFields.FindIndex(x => x.DataField == customFieldGlobal.DataField && !x.IsIgnore);
+            int index = localGroup.CustomFields.FindIndex(x => x.DataField == globalField.DataField && !x.IsIgnore);
             if (index >= 0)
             {
-                customFieldGroup.CustomFields[index] = customFieldGlobal;
+                localGroup.CustomFields[index] = globalField;
             }
             else
             {
-                customFieldGroup.CustomFields.Add(customFieldGlobal);
+                localGroup.CustomFields.Add(globalField);
             }
         }
-        
+    }
+
+    private static void ConfigureFakerRules(CustomFieldGroup customFieldGroup, FieldFaker faker, Random random)
+    {
         foreach (var customField in customFieldGroup.CustomFields)
         {
             if (!string.IsNullOrEmpty(customField.StaticValue))
@@ -132,14 +156,12 @@ public sealed class FieldFaker : Faker<FieldFaker>
             {
                 faker.RuleFor(customField.DataField, f => new Xeger(customField.Template, random).Generate());
             }
-            
+
             if (customField.IsIgnore)
             {
                 faker.Ignore(customField.DataField);
             }
         }
-    
-        return faker.Generate();
     }
     
     public string FirstName { get; set; }

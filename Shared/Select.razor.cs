@@ -57,7 +57,6 @@ public partial class Select : ComponentBase
             {
                 _accessorJsRef = new Lazy<IJSObjectReference>(await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Shared/Select.razor.js"));
             }
-            await JSRuntime.InvokeVoidAsync("import", "./lib/select2/select2.min.js");
             await _accessorJsRef.Value.InvokeVoidAsync("initSelect2", _id, json);
         }
         

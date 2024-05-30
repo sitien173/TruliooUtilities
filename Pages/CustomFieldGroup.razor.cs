@@ -53,9 +53,7 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
             };
         }
         
-        _dataFields = Enum.GetValues(typeof(DataField))
-            .Cast<DataField>()
-            .Select(x => new KeyValuePair<string, string>(x.ToString(), x.ToString()));
+        _dataFields = FieldFaker.AllFieldName().Select(x => new KeyValuePair<string, string>(x, x));
         
         await base.OnInitializedAsync();
     }

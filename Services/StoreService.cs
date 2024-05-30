@@ -19,7 +19,7 @@ public class StorageService(IJSRuntime jsRuntime) : IStorageService, IAsyncDispo
     {
         if (!_module.IsValueCreated)
         {
-            _module = new Lazy<IJSObjectReference>(await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/storage-service.js"));
+            _module = new Lazy<IJSObjectReference>(await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./storage-service.js"));
         }
     }
     

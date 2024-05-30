@@ -4,7 +4,8 @@
   "description": "My browser extension built with Blazor WebAssembly",
   "version": "1",
   "background": {
-    "service_worker": "background-worker.min.js"
+    "service_worker": "background-worker.js",
+    "persistent": true
   },
   "content_scripts": [
     {
@@ -53,20 +54,11 @@
         "framework/*",
         "content/*",
         "wwwroot/*",
-        "app.js",
-        "js/install-cp-debug-btn.js",
-        "js/utils.js",
-        "node_modules/jquery/dist/jquery.min.js",
-        "node_modules/jquery-easy-loading/dist/jquery.loading.min.js"
+        "app.js"
       ],
       "matches": [
         "*://*/*"
       ]
     }
-  ],
-  "externally_connectable": {
-    "matches": [
-      "*://*/*"
-    ]
-  }
+  ]
 }

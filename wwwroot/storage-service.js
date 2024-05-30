@@ -1,4 +1,4 @@
-﻿import * as _ from '../node_modules/localforage/dist/localforage.min.js';
+﻿import * as _ from './node_modules/localforage/dist/localforage.min.js';
 const dbName = 'TruliooExtApp';
 export const setItem = async (instanceName, key, value) => {
     const instance = getInstances(instanceName);

@@ -9,4 +9,5 @@ public class GlobalConfiguration
     public string MatchTemplate { get; set; } = ConstantStrings.CustomFieldMatchTemplate;
     [Url]
     public string AdminPortalEndpoint { get; set; } = ConstantStrings.AdminPortalEndpoint;
+    public bool RefreshOnFill { get; set; }
 }

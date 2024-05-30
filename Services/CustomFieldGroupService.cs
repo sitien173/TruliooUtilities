@@ -1,4 +1,5 @@
-﻿using TruliooExtension.Model;
+﻿using TruliooExtension.JSInvokers;
+using TruliooExtension.Model;
 
 namespace TruliooExtension.Services;
 
@@ -18,44 +19,7 @@ public class CustomFieldGroupService(IStorageService storageService, IGlobalConf
         var result = await storageService.GetAsync<string, CustomFieldGroup>(nameof(CustomFieldGroup), culture);
         return result;
     }
-
-    private async Task<List<CustomField>> GetCustomFieldsAsync(CustomFieldGroup customFieldGroup, CustomFieldGroup customFieldGroupGlobal)
-    {
-        var customFields = new List<CustomField>();
-
-        var fieldFaker = FieldFaker.GenerateWithCustomFieldGroup(customFieldGroupGlobal, customFieldGroup);
-        var properties = fieldFaker.GetType().GetProperties();
-        var config = await configService.GetAsync();
-        foreach (var property in properties)
-        {
-            var val = property.GetValue(fieldFaker)?.ToString();
-            if (string.IsNullOrEmpty(val))
-                continue;
-
-            var customField = customFieldGroup.CustomFields
-                .Concat(customFieldGroupGlobal.CustomFields)
-                .LastOrDefault(x => x.IsCustomize && x.DataField == property.Name);
-            
-            
-            var match = customField?.Match ?? config?.MatchTemplate ?? ConstantStrings.CustomFieldMatchTemplate;
-            match = string.Format(match, property.Name);
-
-            customFields.Add(new CustomField
-            {
-                DataField = property.Name,
-                Match = match,
-                GenerateValue = val,
-                StaticValue = customField?.StaticValue,
-                Template = customField?.Template,
-                IsIgnore = customField?.IsIgnore ?? false,
-                IsCustomize = customField?.IsCustomize ?? false
-            });
-        }
-
-        return customFields;
-    }
-
-
+    
     public async Task SaveAsync(CustomFieldGroup customFieldGroup)
     {
         await storageService.SetAsync(nameof(CustomFieldGroup), customFieldGroup.Culture, customFieldGroup);
@@ -78,7 +42,8 @@ public class CustomFieldGroupService(IStorageService storageService, IGlobalConf
             Enable = true
         };
         
-        customFieldGroup.CustomFields = await GetCustomFieldsAsync(customFieldGroup, customFieldGroupGlobal);
+        var globalConfiguration = await configService.GetAsync();
+        customFieldGroup.CustomFields = RefreshCustomFields.GetCustomFields(customFieldGroup, customFieldGroupGlobal, globalConfiguration!);
         await SaveAsync(customFieldGroup);
     }
 
@@ -87,6 +52,12 @@ public class CustomFieldGroupService(IStorageService storageService, IGlobalConf
         var config = await configService.GetAsync();
         if (config == null)
             return;
+
+        await SaveAsync(new CustomFieldGroup()
+        {
+            Culture = "global",
+            Enable = true
+        });
         
         var cultures = config.CurrentCulture;
         await RefreshAsync(cultures);

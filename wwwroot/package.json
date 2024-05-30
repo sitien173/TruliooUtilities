@@ -5,13 +5,11 @@
     "esmify": "^2.1.1"
   },
   "scripts": {
-    "build": "browserify background-worker.js -p esmify > background-worker.min.js"
+    "build": "browserify background-worker.mjs -p esmify > background-worker.js"
   },
   "dependencies": {
     "bootstrap": "^3.4.1",
-    "install": "^0.13.0",
     "jquery": "^3.7.1",
-    "jquery-easy-loading": "^2.0.0-rc.2",
     "localforage": "^1.10.0",
     "quicktype-core": "^23.0.168",
     "select2": "^4.1.0-rc.0",
