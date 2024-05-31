@@ -51,19 +51,6 @@ public class CustomFieldGroupService(IStorageService storageService, IGlobalConf
 
     public async Task InitializeAsync()
     {
-        var config = await configService.GetAsync();
-        if (config == null)
-            return;
-
-        await SaveAsync(new CustomFieldGroup()
-        {
-            Culture = "global",
-            Enable = true
-        });
-        
-        var cultures = config.CurrentCulture;
-        await RefreshAsync(cultures);
-
         var allKeys = await storageService.GetAllKeysAsync(_key);
         var locales = (await localeService.GetLocalesAsync()).Select(x => x.Key).Except(allKeys).ToList();
         foreach (string locale in locales)
