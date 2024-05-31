@@ -1,5 +1,5 @@
 ﻿import browser from './content/Blazor.BrowserExtension/lib/browser-polyfill.js';
-import { getItem, getAll, getKeys } from './storage-service.js';
+import {getItem, getAll, getKeys, setItem} from './storage-service.js';
 
 const {
     quicktype,
@@ -202,6 +202,8 @@ async function getCustomFields() {
         const keys = await getKeys('CustomFieldGroup');
         culture = keys.find(x => x.match(culture));
         cultureKey = culture || cultureKey;
+        config.currentCulture = cultureKey;
+        await setItem('Settings', 'GlobalConfiguration', config);
     }
 
     const data = await getItem('CustomFieldGroup', cultureKey);
