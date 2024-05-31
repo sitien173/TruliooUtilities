@@ -89,7 +89,7 @@ public sealed class FieldFaker : Faker<FieldFaker>
         RuleFor(o => o.InseeNumber, f => string.Join("", f.Random.Digits(11)));
         RuleFor(o => o.HongKongIDNumber, f => string.Join("", f.Random.Digits(11)));
         RuleFor(o => o.PersonalPublicServiceNumber, f => string.Join("", f.Random.Digits(11)));
-        RuleFor(o => o.CodiceFiscale, f => string.Join("", f.Random.Digits(11)));
+        RuleFor(o => o.CodiceFiscale, f => string.Join("", f.Random.Digits(16)));
         RuleFor(o => o.CURPIDNumber, f => string.Join("", f.Random.Digits(11)));
         RuleFor(o => o.NRICNumber, f => string.Join("", f.Random.Digits(11)));
         RuleFor(o => o.PinNumber, f => string.Join("", f.Random.Digits(11)));

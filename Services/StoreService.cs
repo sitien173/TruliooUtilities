@@ -9,6 +9,8 @@ public interface IStorageService
     Task<List<T>> GetAllAsync<T>(string instanceName);
     Task<int> NextIdAsync(string instanceName);
     Task<T?> FirstOrDefaultAsync<T>(string instanceName, Func<T, bool> predicate);
+    Task DeleteAsync<TKey>(string instanceName, TKey key);
+    Task<List<string>> GetAllKeysAsync(string instanceName);
 }
 
 public class StorageService(IJSRuntime jsRuntime) : IStorageService, IAsyncDisposable
@@ -55,6 +57,19 @@ public class StorageService(IJSRuntime jsRuntime) : IStorageService, IAsyncDispo
         await WaitForReferenceAsync();
         var result = await GetAllAsync<T>(instanceName);
         return result.FirstOrDefault(predicate);
+    }
+
+    public async Task DeleteAsync<TKey>(string instanceName, TKey key)
+    {
+        await WaitForReferenceAsync();
+        await _module.Value.InvokeVoidAsync("deleteItem", instanceName, key);
+    }
+
+    public async Task<List<string>> GetAllKeysAsync(string instanceName)
+    {
+        await WaitForReferenceAsync();
+        var keys = await _module.Value.InvokeAsync<List<string>>("getKeys", instanceName);
+        return keys;
     }
 
     public async ValueTask DisposeAsync()

@@ -1,0 +1,19 @@
+﻿<div class="panel-body">
+    <strong>@Item.Id - @Item.Name</strong>
+    <div class="custom-field-buttons">
+        <button type="button" class="btn btn-sm btn-link" @onclick="Edit">
+            <img src="images/edit.svg" width="12" height="12" alt="Edit">
+        </button>
+        <button type="button" class="btn btn-sm btn-link" @onclick="Delete">
+            <img src="images/delete.svg" width="12" height="12" alt="Delete">
+        </button>
+    </div>
+</div>
+<table class="table">
+    <tbody>
+    <tr><td>Id</td><td>@Item.Id</td></tr>
+    <tr><td>Name</td><td>@Item.Name</td></tr>
+    <tr><td>Url</td><td>@Item.Url</td></tr>
+    <tr><td>Description</td><td>@Item.Description</td></tr>
+    </tbody>
+</table>

@@ -33,6 +33,7 @@ namespace TruliooExtension
             builder.Services.AddScoped<IGlobalConfigurationService, GlobalConfigurationService>();
             builder.Services.AddScoped<IToastService, ToastService>();
             builder.Services.AddScoped<IUpdateDatasourceService, UpdateDatasourceService>();
+            builder.Services.AddScoped<ICSPManagerService, CSPManagerService>();
             var host = builder.Build();
             
             var extensionEnvironment = host.Services.GetRequiredService<IBrowserExtensionEnvironment>().Mode;

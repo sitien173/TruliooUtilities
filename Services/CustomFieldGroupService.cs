@@ -1,4 +1,5 @@
-﻿using TruliooExtension.JSInvokers;
+﻿using AsyncAwaitBestPractices;
+using TruliooExtension.JSInvokers;
 using TruliooExtension.Model;
 
 namespace TruliooExtension.Services;
@@ -11,18 +12,19 @@ public interface ICustomFieldGroupService
     Task InitializeAsync();
 }
 
-public class CustomFieldGroupService(IStorageService storageService, IGlobalConfigurationService configService)
+public class CustomFieldGroupService(IStorageService storageService, IGlobalConfigurationService configService, ILocaleService localeService)
     : ICustomFieldGroupService
 {
+    private const string _key = nameof(CustomFieldGroup);
     public async Task<CustomFieldGroup?> GetAsync(string culture)
     {
-        var result = await storageService.GetAsync<string, CustomFieldGroup>(nameof(CustomFieldGroup), culture);
+        var result = await storageService.GetAsync<string, CustomFieldGroup>(_key, culture);
         return result;
     }
     
     public async Task SaveAsync(CustomFieldGroup customFieldGroup)
     {
-        await storageService.SetAsync(nameof(CustomFieldGroup), customFieldGroup.Culture, customFieldGroup);
+        await storageService.SetAsync(_key, customFieldGroup.Culture, customFieldGroup);
     }
 
     public async Task RefreshAsync(string culture)
@@ -61,5 +63,12 @@ public class CustomFieldGroupService(IStorageService storageService, IGlobalConf
         
         var cultures = config.CurrentCulture;
         await RefreshAsync(cultures);
+
+        var allKeys = await storageService.GetAllKeysAsync(_key);
+        var locales = (await localeService.GetLocalesAsync()).Select(x => x.Key).Except(allKeys).ToList();
+        foreach (string locale in locales)
+        {
+            RefreshAsync(locale).SafeFireAndForget();
+        }
     }
 }

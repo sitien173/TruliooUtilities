@@ -26,7 +26,7 @@ public static class GenerateUnitTestsVariantSetup
             var variants = VariantHelper.GetVariantsFromRows(rows);
             if (variants.Count != 0)
             {
-                sb.AppendLine(UnitTestInitializerVariant(variants, variantIndex++));
+                sb.Append(UnitTestInitializerVariant(variants, variantIndex++));
             }
         }
 

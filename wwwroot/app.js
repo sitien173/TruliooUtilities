@@ -85,6 +85,11 @@ function onMessageReceivedEvent(){
                         sendResponse([]);
                     }
                     break;
+                case "CurrentCulture":
+                    const cultureEle = document.querySelector('div[data-testid=input-page-details-country-value]');
+                    let culture = cultureEle.textContent.substring(cultureEle.textContent.lastIndexOf('(') + 1, cultureEle.textContent.length - 1);
+                    sendResponse(culture);
+                    break;
                 default:
                     console.log("Unknown action in content script: " + message.action);
                     sendResponse("Unknown action");
@@ -97,11 +102,14 @@ function onMessageReceivedEvent(){
     });
 }
 
-
 async function handleVariantAction(action, methodName, alertMessage) {
-    let headerElement = $("h2:contains('Datasource Group Variant Setup')");
-    let variantSetupEle = headerElement.next("div");
-    const result = await DotNet.invokeMethodAsync('TruliooExtension', methodName, variantSetupEle.html());
+    let headers = document.querySelectorAll("h2");
+    let headerElement = Array.from(headers).find(header => header.textContent.includes('Datasource Group Variant Setup'));
+    if (!headerElement) {
+        throw new Error("Header element not found");
+    }
+    let variantSetupEle = headerElement.nextElementSibling;
+    const result = await DotNet.invokeMethodAsync('TruliooExtension', methodName, variantSetupEle.innerHTML);
     await navigator.clipboard.writeText(result);
     alert(alertMessage);
 }
@@ -189,6 +197,22 @@ function createKycButton(transactionRecordId) {
 
 function fillElementsByMatch(data){
     data.forEach(fillElement);
+
+    // Collect all unique search field identifiers from the document
+    const fields = Array.from(document.querySelectorAll("div[data-testid$='-search-field']"))
+        .map(item => item.getAttribute('data-testid').split(' ')[0])
+        .filter((value, index, self) => self.indexOf(value) === index);
+
+    // Process each unique search field
+    fields.forEach(fieldId => {
+        const inputElement = document.querySelector(`div[data-testid='${fieldId} -search-field'] input`);
+        if (inputElement) {
+            const fieldData = data.find(field => field.dataField === fieldId);
+            if (fieldData && !fieldData.isIgnore) {
+                setValue(inputElement, fieldData.generateValue);
+            }
+        }
+    });
 }
 
 function fillElement(item){
@@ -199,12 +223,6 @@ function fillElement(item){
             setValue(control, item.generateValue);
         }
     });
-    
-    const searchInput = document.querySelector("input[placeholder=Month]");
-    if(searchInput)
-    {
-        setValue(searchInput, '1');
-    }
 }
 
 function filterValidElements(elements){

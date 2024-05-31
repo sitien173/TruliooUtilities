@@ -1,0 +1,59 @@
+﻿@page "/csp-manager"
+@inherits BasePage
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h5>Drop X-Frame-Options and Content-Security-Policy HTTP response headers for special sites, allowing pages to be embedded as iframes.</h5>
+        <button type="button" class="btn btn-default" @onclick="PrepareAdd">
+            Add Rule
+        </button>
+    </div>
+    <div class="panel-body">
+        @foreach (var item in _cspList)
+        {
+        <CSP Item="item" EditHandler="PrepareEdit" DeleteHandler="HandleDelete"></CSP>
+        }
+    </div>
+</div>
+
+<div class="modal fade" id="cspManagerModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <EditForm Model="_model" OnSubmit="OnSubmit">
+                <InputNumber hidden @bind-Value="_model.Id"></InputNumber>
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="modalLabel">@(_isAdd ? "Add" : "Edit") Rule</h4>
+                </div>
+                <div class="modal-body">
+                    <DataAnnotationsValidator/>
+
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <InputText @bind-Value="_model.Name" class="form-control"/>
+                        <ValidationMessage For="() => _model.Name"/>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Url</label>
+                        <InputText @bind-Value="_model.Url" class="form-control"/>
+                        <ValidationMessage For="() => _model.Url"/>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <InputTextArea @bind-Value="_model.Description" class="form-control"/>
+                        <ValidationMessage For="() => _model.Description"/>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button id="close-modal" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>

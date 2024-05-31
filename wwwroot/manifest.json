@@ -32,7 +32,8 @@
     "scripting",
     "tabs",
     "commands",
-    "unlimitedStorage"
+    "unlimitedStorage",
+    "declarativeNetRequest"
   ],
   "commands": {
     "fill-input": {
@@ -60,5 +61,12 @@
         "*://*/*"
       ]
     }
-  ]
+  ],
+  "declarative_net_request" : {
+    "rule_resources" : [{
+      "id": "removeHeader",
+      "enabled": false,
+      "path": "removeHeader.json"
+    }]
+  }
 }

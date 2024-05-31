@@ -1,5 +1,5 @@
 ﻿import browser from './content/Blazor.BrowserExtension/lib/browser-polyfill.js';
-import { getItem } from './storage-service.js';
+import { getItem, getAll, getKeys } from './storage-service.js';
 
 const {
     quicktype,
@@ -7,6 +7,12 @@ const {
     jsonInputForTargetLanguage} = require("quicktype-core");
 const localforage = require('localforage');
 self.localforage = localforage;
+
+browser.runtime.onStartup.addListener(async function () {
+    const rules = await getAll('CSP');
+    const keywords = rules.map(x => x.url);
+    await updateUnblockRulesAdd(keywords)
+});
 
 browser.runtime.onInstalled.addListener(async () => {
     // Initialize localforage database
@@ -136,6 +142,24 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     }
 });
 
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        (async () => {
+            switch (message.action){
+                case 'update-rule':
+                    await updateUnblockRulesAdd((await getAll('CSP')).map(x => x.url));
+                    sendResponse('update rule successfully');
+                    break;
+                case 'remove-rule':
+                    await updateUnblockRulesRemove((await getAll('CSP')).filter(x => x.id !== message.id).map(x => x.url))
+                    sendResponse('update rule successfully');
+                    break;
+            }
+        })()
+        return true;
+    }
+);
+
+
 async function quicktypeJSON(targetLanguage, typeName, jsonString) {
     const jsonInput = jsonInputForTargetLanguage(targetLanguage);
     
@@ -157,7 +181,7 @@ async function quicktypeJSON(targetLanguage, typeName, jsonString) {
         alphabetizeProperties: false,
         allPropertiesOptional: false,
         inferDateTimes: false,
-        inferIntegerStrings: false,
+        inferIntegerStrings: true,
         inferBooleanStrings: true,
         combineClasses: true,
         ignoreJsonRefs: true,
@@ -168,28 +192,39 @@ async function quicktypeJSON(targetLanguage, typeName, jsonString) {
     });
 }
 
-async function getCustomFields(){
+async function getCustomFields() {
     const config = await getConfig();
-    const data = await getItem('CustomFieldGroup', config?.currentCulture || 'en');
-    if(!data.enable)
-    { return []; }
-    
-    if(config.refreshOnFill)
-    {
+    const tabId = await getCurrentTabId();
+    let culture = await browser.tabs.sendMessage(tabId, { action: 'CurrentCulture' });
+
+    let cultureKey = config?.currentCulture || 'en';
+    if (culture) {
+        const keys = await getKeys('CustomFieldGroup');
+        culture = keys.find(x => x.match(culture));
+        cultureKey = culture || cultureKey;
+    }
+
+    const data = await getItem('CustomFieldGroup', cultureKey);
+
+    if (!data.enable) {
+        return [];
+    }
+
+    if (config.refreshOnFill) {
         const globalData = await getItem('CustomFieldGroup', 'global');
-        const tabId = await getCurrentTabId();
         const result = await browser.tabs.sendMessage(tabId, {
             action: "RefreshCustomFields",
             customFieldGroup: data,
             customFieldGroupGlobal: globalData,
             globalConfig: config
         });
-        
+
         return result.length === 0 ? data.customFields : result;
     }
-    
+
     return data.customFields;
 }
+
 
 const getConfig = async () => {
     return await getItem('Settings', 'GlobalConfiguration');
@@ -252,4 +287,64 @@ const getCurrentTabId = async () => {
     const tabs = await browser.tabs.query({ active: true, currentWindow: true });
     return tabs[0].id;
 };
+
+// Helper function to check if the rule is a CSP related ID (update this based on your logic)
+function isFramerID(id) {
+    let idString = String(id)
+    if(idString.length > 4 && idString.substring(idString.length -4, idString.length) == 6794){
+        return true
+    }
+    return false
+}
+
+function stringToId(str) {
+    let id = str.length
+    Array.from(str).forEach( (it) => {
+        id += it.charCodeAt()
+    })
+    return id * 10000 + 6794
+}
+
+// Helper function to add a new CSP rule
+function addFramerRule(keyword) {
+    browser.declarativeNetRequest.updateSessionRules({addRules: [generateUnblockRule(keyword)]});
+}
+
+async function updateUnblockRulesRemove(keywords) {
+
+    let sessionRulesAll = await browser.declarativeNetRequest.getSessionRules()
+    let sessionRulesFramer = sessionRulesAll.filter( rule => isFramerID(rule['id']))
+    let sessionRulesToRemove = sessionRulesFramer.filter( rule => keywords.indexOf(rule['condition']['urlFilter'].replaceAll("*", "")) === -1)
+
+    let sessionRulesToRemoveIDs = sessionRulesToRemove.map( rule => rule['id'] )
+
+    await browser.declarativeNetRequest.updateSessionRules({removeRuleIds: sessionRulesToRemoveIDs});
+}
+
+async function updateUnblockRulesAdd(keywords) {
+    let sessionRulesAll = await browser.declarativeNetRequest.getSessionRules()
+    let sessionRulesFramer = sessionRulesAll.filter( rule => isFramerID(rule['id']))
+    let sessionKeywords = sessionRulesFramer.map( rule => rule['condition']['urlFilter'].replaceAll("*", ""))
+    let sessionKeywordsToAdd = keywords.filter( keyword => sessionKeywords.indexOf(keyword) === -1)
+
+    sessionKeywordsToAdd.forEach(it => addFramerRule(it))
+}
+
+function generateUnblockRule(keyword) {
+    return {
+        "id": stringToId(keyword),
+        "priority": 1,
+        "action": {
+            "type": "modifyHeaders",
+            "responseHeaders": [
+                { "header": "x-frame-options", "operation": "remove" },
+                { "header": "content-security-policy", "operation": "remove" }
+            ]
+        },
+        "condition": { "urlFilter": `*${keyword}*`, "resourceTypes": ["main_frame","sub_frame"] }
+    }
+}
+
+
+
 
