@@ -14,19 +14,22 @@ public partial class GlobalConfiguration
     [Inject] private ILocaleService LocaleService { get; set; }
     [Inject] private IGlobalConfigurationService GlobalConfigurationService { get; set; }
     [Inject] private ICustomFieldGroupService CustomFieldGroupService { get; set; }
+    [Inject] private IUpdateDatasourceService UpdateDatasourceService { get; set; }
     
     private bool IsLoading { get; set; }
     private Lazy<IJSObjectReference> _accessorJsRef = new ();
-    private Model.GlobalConfiguration _model = new ();
+    private Entities.GlobalConfiguration _model = new ();
     private IReadOnlyDictionary<string, string> _locales = new Dictionary<string, string>();
+    private bool _canConnectUpdateDataSource;
     protected override async Task OnInitializedAsync()
     {
         _locales = await LocaleService.GetLocalesAsync();
         _model = await GlobalConfigurationService.GetAsync();
+        _canConnectUpdateDataSource = await UpdateDatasourceService.CanConnectAsync();
 
         if (_model == null)
         {
-            _model = new Model.GlobalConfiguration();
+            _model = new Entities.GlobalConfiguration();
             
             await GlobalConfigurationService.SaveAsync(_model);
             await CustomFieldGroupService.RefreshAsync(_model.CurrentCulture);

@@ -1,8 +1,8 @@
 ﻿using Blazor.BrowserExtension.Pages;
 using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
-using TruliooExtension.Model;
+using TruliooExtension.Common;
 using TruliooExtension.Services;
+using IConfigurationProvider = TruliooExtension.Services.IConfigurationProvider;
 
 namespace TruliooExtension.Pages;
 
@@ -10,13 +10,16 @@ public partial class Popup : BasePage
 {
     [Inject] private NavigationManager NavigationManager { get; set; }
     [Inject] private IStorageService StorageService { get; set; }
+    [Inject] private IConfigurationProvider ConfigurationProvider { get; set; }
     
     private const string _key = "current-page";
+    private AppSettings _appSettings;
     protected override async Task OnInitializedAsync()
     {
+        _appSettings = await ConfigurationProvider.GetAppSettingsAsync();
         NavigationManager.LocationChanged += async (s, e) =>
         {
-            await StorageService.SetAsync<string, string>(ConstantStrings.SettingTable,_key, NavigationManager.ToBaseRelativePath(NavigationManager.Uri));
+            await StorageService.SetAsync<string, string>(_appSettings.Tables.Temp,_key, NavigationManager.ToBaseRelativePath(NavigationManager.Uri));
         };
         
         await base.OnInitializedAsync();
@@ -26,7 +29,7 @@ public partial class Popup : BasePage
     {
         if (firstRender)
         {
-            string? currentPage = await StorageService.GetAsync<string, string>(ConstantStrings.SettingTable,_key);
+            string? currentPage = await StorageService.GetAsync<string, string>(_appSettings.Tables.Temp,_key);
             NavigationManager.NavigateTo(!string.IsNullOrEmpty(currentPage) ? currentPage : "/global-configuration");
         }
         await base.OnAfterRenderAsync(firstRender);

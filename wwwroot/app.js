@@ -1,10 +1,12 @@
-﻿globalThis.BlazorBrowserExtension.StartBlazorBrowserExtension = true;
+﻿import { constantStrings } from './common.mjs';
+
+globalThis.BlazorBrowserExtension.StartBlazorBrowserExtension = true;
 globalThis.BlazorBrowserExtension.ImportBrowserPolyfill = true;
 
 export async function beforeStart(options, extensions, blazorBrowserExtension) {
     if (blazorBrowserExtension.BrowserExtension.Mode === blazorBrowserExtension.Modes.ContentScript) {
         const appDiv = document.createElement("div");
-        appDiv.id = "TruliooExtAppID";
+        appDiv.id = 'TruliooExtAppID';
         document.body.appendChild(appDiv);
 
         if (window.location.href.startsWith('https://') && window.location.href.includes('/GDCDebug/DebugRecordTransaction')) {
@@ -27,65 +29,63 @@ function onMessageReceivedEvent(){
         (async () => {
             let alertMessage;
             switch (message.action) {
-                case "PasteToCp":   
+                case constantStrings.MessageAction.PasteToCp:   
                     await pasteToCp();
                     sendResponse();
                     break;
-                case "FillToCp":
+                case constantStrings.MessageAction.FillToCp:
                     fillElementsByMatch(message.customFields);
                     sendResponse();
                     break;
-                case "PrintDSGroupVariantSetup":
-                    await handleVariantAction(message.action, 'PrintDSGroupVariantSetup', 'DS Group Variant Setup copied to clipboard');
-                    sendResponse("DS Group Variant Setup copied to clipboard");
+                case constantStrings.MessageAction.PrintDsGroupVariantSetup:
+                    await handleVariantAction(message.action, 'DS Group Variant Setup copied to clipboard');
+                    sendResponse();
                     break;
-                case "GenerateUnitTestsVariantSetup":
-                    await handleVariantAction(message.action, 'GenerateUnitTestsVariantSetup', 'Unit Tests Variant Setup copied to clipboard');
-                    sendResponse("Unit Tests Variant Setup copied to clipboard");
+                case constantStrings.MessageAction.GenerateUnitTestsVariantSetup:
+                    await handleVariantAction(message.action,'Unit Tests Variant Setup copied to clipboard');
+                    sendResponse();
                     break;
-                case "CreateKYBButton":
+                case constantStrings.MessageAction.CreateKYBButton:
                     createKybButton(message.transactionRecordId, message.url);
-                    sendResponse("KYB button created");
+                    sendResponse();
                     break;
-                case "CreateKYCButton":
+                case constantStrings.MessageAction.CreateKYCButton:
                     createKycButton(message.transactionRecordId);
-                    sendResponse("KYC button created");
+                    sendResponse();
                     break;
-                case "GetSelectedText":
+                case constantStrings.MessageAction.GetSelectedText:
                     const selectedText = window.getSelection().toString();
                     sendResponse(selectedText);
                     break;
-                case "JsonToClass":
+                case constantStrings.MessageAction.JsonToClass:
                     if (message.status === 'ok') {
                         await navigator.clipboard.writeText(message.classCode);
                         alertMessage = "Class copied to clipboard";
                     } else {
-                        console.error("Error generating class: " + message.message);
                         alertMessage = "Error generating class: " + message.message;
                     }
                     sendResponse();
                     break;
-                case "JsonToObjectInitializer":
+                case constantStrings.MessageAction.JsonToObjectInitializer:
                     if (message.status === 'ok') {
-                        const result = await DotNet.invokeMethodAsync('TruliooExtension', 'JsonToObjectInitializer', message.extensionID, message.classCode, message.json);
+                        const result = await DotNet.invokeMethodAsync(constantStrings.AssemblyName, constantStrings.MessageAction.JsonToObjectInitializer, message.extensionID, message.classCode, message.json);
                         await navigator.clipboard.writeText(result);
                         alertMessage = "Object Initializer copied to clipboard";
                     } else {
-                        console.error(message.message);
                         alertMessage = "Error generating object initializer: " + message.message;
                     }
                     sendResponse();
                     break;
-                case "RefreshCustomFields":
+                case constantStrings.MessageAction.RefreshCustomFields:
                     try {
-                        const result = await DotNet.invokeMethodAsync('TruliooExtension', 'RefreshCustomFields', message.customFieldGroup, message.customFieldGroupGlobal, message.globalConfig);
+                        const result = await DotNet.invokeMethodAsync(constantStrings.AssemblyName, constantStrings.MessageAction.RefreshCustomFields, message.customFieldGroup, message.customFieldGroupGlobal, message.globalConfig);
                         sendResponse(result);
                     }
                     catch {
                         sendResponse([]);
                     }
                     break;
-                case "CurrentCulture":
+                case constantStrings.MessageAction.CurrentCulture:
                     const cultureEle = document.querySelector('div[data-testid=input-page-details-country-value]');
                     let culture = cultureEle.textContent.substring(cultureEle.textContent.lastIndexOf('(') + 1, cultureEle.textContent.length - 1);
                     sendResponse(culture);
@@ -102,14 +102,14 @@ function onMessageReceivedEvent(){
     });
 }
 
-async function handleVariantAction(action, methodName, alertMessage) {
+async function handleVariantAction(action, alertMessage) {
     let headers = document.querySelectorAll("h2");
     let headerElement = Array.from(headers).find(header => header.textContent.includes('Datasource Group Variant Setup'));
     if (!headerElement) {
         throw new Error("Header element not found");
     }
     let variantSetupEle = headerElement.nextElementSibling;
-    const result = await DotNet.invokeMethodAsync('TruliooExtension', methodName, variantSetupEle.innerHTML);
+    const result = await DotNet.invokeMethodAsync(constantStrings.AssemblyName, action, variantSetupEle.innerHTML);
     await navigator.clipboard.writeText(result);
     alert(alertMessage);
 }

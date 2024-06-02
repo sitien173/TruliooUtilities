@@ -1,7 +1,9 @@
-﻿using Bogus;
+﻿using System.Reflection;
+using Bogus;
 using Fare;
+using TruliooExtension.Entities;
 
-namespace TruliooExtension.Model;
+namespace TruliooExtension.Common;
 
 public sealed class FieldFaker : Faker<FieldFaker>
 {
@@ -110,8 +112,7 @@ public sealed class FieldFaker : Faker<FieldFaker>
 
     public static List<string> AllFieldName()
     {
-        return typeof(FieldFaker).GetProperties()
-            .Where(p => !(p.DeclaringType is Faker<FieldFaker>))
+        return typeof(FieldFaker).GetProperties(BindingFlags.Public)
             .Select(p => p.Name)
             .ToList();
     }

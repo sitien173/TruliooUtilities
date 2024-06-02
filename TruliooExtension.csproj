@@ -29,19 +29,38 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="HtmlAgilityPack" Version="1.11.61"/>
-        <PackageReference Include="Humanizer.Core" Version="2.14.1"/>
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.6" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.6" PrivateAssets="all" />
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.9.2" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
-        <PackageReference Include="ObjectDumper.NET" Version="4.2.7" />
         <PackageReference Include="PropertyChanged.Fody" Version="4.1.0"/>
         <!-- EF Core and SQLite support -->
     </ItemGroup>
-    
-    <Target Name="npm-build" BeforeTargets="Build">
-        <Message Text="Running npm build..."/>
-        <Exec Command="npm run build" WorkingDirectory="$(MSBuildProjectDirectory)\bin\Debug\net8.0\browserextension" />
+
+    <ItemGroup>
+        <NodePackages Include="wwwroot\node_modules" />
+    </ItemGroup>
+
+    <!-- Target to ensure node modules are installed -->
+    <Target Name="EnsureNodeModules" BeforeTargets="Build">
+        <Message Text="Checking if npm packages need to be installed..." Importance="high" />
+        <ItemGroup>
+            <MissingPackages Include="@(NodePackages->'%(FullPath)')" Condition="!Exists('%(FullPath)')" />
+        </ItemGroup>
+        <Message Text="Missing packages: @(MissingPackages)" Importance="high" Condition="@(MissingPackages) != ''" />
+        <Exec Command="npm install" WorkingDirectory="$(MSBuildProjectDirectory)\wwwroot" Condition="@(MissingPackages) != ''" />
+    </Target>
+
+    <!-- Target to run npm build -->
+    <Target Name="NpmBuild" AfterTargets="Build" DependsOnTargets="EnsureNodeModules">
+        <Message Text="Running npm build..." Importance="high" />
+        <Exec Command="npm run build" WorkingDirectory="$(MSBuildProjectDirectory)\bin\Debug\net8.0\browserextension" ContinueOnError="false">
+            <Output TaskParameter="ExitCode" PropertyName="NpmBuildExitCode" />
+        </Exec>
+        <Error Condition="'$(NpmBuildExitCode)' != '0'" Text="npm run build failed. Retrying..." />
+        <Exec Command="npm run build" WorkingDirectory="$(MSBuildProjectDirectory)\bin\Debug\net8.0\browserextension" Condition="'$(NpmBuildExitCode)' != '0'" ContinueOnError="false">
+            <Output TaskParameter="ExitCode" PropertyName="NpmBuildRetryExitCode" />
+        </Exec>
     </Target>
     
     <ItemGroup>

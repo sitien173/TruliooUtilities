@@ -12,7 +12,7 @@ public partial class CustomFieldList : BasePage, IAsyncDisposable
     [Inject] private ILocaleService LocaleService { get; set; }
     
     private Lazy<IJSObjectReference> _accessorJsRef = new ();
-    private Model.GlobalConfiguration _config = new ();
+    private Entities.GlobalConfiguration _config = new ();
     private IReadOnlyDictionary<string, string> _locales = new Dictionary<string, string>();
 
     protected override async Task OnInitializedAsync()

@@ -55,7 +55,8 @@
         "framework/*",
         "content/*",
         "wwwroot/*",
-        "app.js"
+        "app.js",
+        "common.mjs"
       ],
       "matches": [
         "*://*/*"

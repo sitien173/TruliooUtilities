@@ -9,7 +9,7 @@ public partial class CSP : ComponentBase, IAsyncDisposable
     [Inject] private IJSRuntime JSRuntime { get; set; }
     [Inject] private IToastService ToastService { get; set; }
     
-    [Parameter] public Model.CSP Item { get; set; }
+    [Parameter] public Entities.CSP Item { get; set; }
     [Parameter] public EventCallback<int> EditHandler { get; set; }
     [Parameter] public EventCallback<int> DeleteHandler { get; set; }
     

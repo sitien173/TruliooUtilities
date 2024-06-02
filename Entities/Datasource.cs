@@ -1,4 +1,4 @@
-﻿namespace TruliooExtension.Model;
+﻿namespace TruliooExtension.Entities;
 
 public class Datasource
 {

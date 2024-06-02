@@ -1,4 +1,4 @@
-﻿using TruliooExtension.Model;
+﻿using TruliooExtension.Entities;
 
 namespace TruliooExtension.Services;
 
@@ -10,32 +10,31 @@ public interface ICSPManagerService
     Task DeleteAsync(int id);
 }
 
-public class CSPManagerService(IStorageService storageService) : ICSPManagerService
+public class CSPManagerService(IStorageService storageService, IConfigurationProvider configurationProvider) : ICSPManagerService
 {
-    private const string _key = nameof(CSP);
     public async Task<CSP> GetAsync(int id)
     {
-        var csp = await storageService.GetAsync<int, CSP>(_key, id);
+        var csp = await storageService.GetAsync<int, CSP>((await configurationProvider.GetAppSettingsAsync()).Tables.CspManager, id);
         return csp ?? new CSP();
     }
 
-    public Task<List<CSP>> GetAllAsync()
+    public async Task<List<CSP>> GetAllAsync()
     {
-        return storageService.GetAllAsync<CSP>(_key);
+        return await storageService.GetAllAsync<CSP>((await configurationProvider.GetAppSettingsAsync()).Tables.CspManager);
     }
 
     public async Task SaveAsync(CSP model)
     {
         if (model.Id == 0)
         {
-            model.Id = await storageService.NextIdAsync(_key);
+            model.Id = await storageService.NextIdAsync((await configurationProvider.GetAppSettingsAsync()).Tables.CspManager);
         }
 
-        await storageService.SetAsync(_key, model.Id, model);
+        await storageService.SetAsync((await configurationProvider.GetAppSettingsAsync()).Tables.CspManager, model.Id, model);
     }
 
-    public Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id)
     {
-        return storageService.DeleteAsync(_key, id);
+        await storageService.DeleteAsync((await configurationProvider.GetAppSettingsAsync()).Tables.CspManager, id);
     }
 }

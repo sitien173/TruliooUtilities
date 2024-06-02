@@ -2,7 +2,7 @@
 using Blazored.Toast.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using TruliooExtension.Model;
+using TruliooExtension.Entities;
 using TruliooExtension.Services;
 
 namespace TruliooExtension.Pages;

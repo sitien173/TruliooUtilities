@@ -8,9 +8,9 @@ export function openModal() {
 }
 
 export async function updateRule(){
-    return await browser.runtime.sendMessage({action: 'update-rule'});
+    return await browser.runtime.sendMessage({action: constantStrings.MessageAction.UpdateRule});
 }
 
 export async function removeRule(id){
-    return await browser.runtime.sendMessage({action: 'remove-rule', id: id});
+    return await browser.runtime.sendMessage({action: constantStrings.MessageAction.RemoveRule, id: id});
 }

@@ -3,8 +3,11 @@ using Blazor.BrowserExtension.Pages;
 using Blazored.Toast.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using TruliooExtension.Model;
+using TruliooExtension.Common;
+using TruliooExtension.Entities;
 using TruliooExtension.Services;
+using ConfigurationProvider = TruliooExtension.Services.ConfigurationProvider;
+using IConfigurationProvider = TruliooExtension.Services.IConfigurationProvider;
 
 namespace TruliooExtension.Pages;
 
@@ -14,6 +17,7 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
     [Inject] private IToastService ToastService { get; set; }
     [Inject] private ICustomFieldGroupService CustomFieldGroupService { get; set; }
     [Inject] private IGlobalConfigurationService GlobalConfigurationService { get; set; }
+    [Inject] private IConfigurationProvider ConfigurationProvider { get; set; }
     
     [Parameter] public string Culture { get; set; }
     [SupplyParameterFromQuery(Name = "cultureName")] public string CultureName { get; set; }
@@ -23,7 +27,8 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
     private bool _isAdd;
     private CustomField _model = new ();
     private bool _isLoading;
-    private Model.CustomFieldGroup _customFieldGroup = new ();
+    private Entities.CustomFieldGroup _customFieldGroup = new ();
+    private AppSettings _appSettings;
     
     private IEnumerable<string> ExcludesDataFields => _customFieldGroup.CustomFields.Where(x => x.IsCustomize).Select(x => x.DataField);
     protected override async Task OnParametersSetAsync()
@@ -37,7 +42,8 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
     
     protected override async Task OnInitializedAsync()
     {
-        _customFieldGroup = await CustomFieldGroupService.GetAsync(Culture) ?? new Model.CustomFieldGroup()
+        _appSettings = await ConfigurationProvider.GetAppSettingsAsync();
+        _customFieldGroup = await CustomFieldGroupService.GetAsync(Culture) ?? new Entities.CustomFieldGroup()
         {
             Culture = Culture,
             Enable = true
@@ -46,7 +52,7 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
         if (_customFieldGroup.CustomFields.Count == 0)
         {
             await CustomFieldGroupService.RefreshAsync(Culture);
-            _customFieldGroup = await CustomFieldGroupService.GetAsync(Culture) ?? new Model.CustomFieldGroup()
+            _customFieldGroup = await CustomFieldGroupService.GetAsync(Culture) ?? new Entities.CustomFieldGroup()
             {
                 Culture = Culture,
                 Enable = true
@@ -78,7 +84,7 @@ public partial class CustomFieldGroup : BasePage, IAsyncDisposable
     private async Task ChangeDataField(string val)
     {
         _model.DataField = val;
-        _model.Match = (await GlobalConfigurationService.GetAsync())?.MatchTemplate ?? string.Format(ConstantStrings.CustomFieldMatchTemplate, val);
+        _model.Match = (await GlobalConfigurationService.GetAsync())?.MatchTemplate ?? string.Format(_appSettings.CustomFieldMatchTemplate, val);
         
         StateHasChanged();
     }

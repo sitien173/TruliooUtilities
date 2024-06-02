@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.JSInterop;
+using TruliooExtension.Services;
 
 namespace TruliooExtension.Shared;
 
@@ -8,8 +9,10 @@ public partial class Navbar : ComponentBase, IAsyncDisposable
 {
     [Inject] NavigationManager navigationManager { get; set; }
     [Inject] private IJSRuntime jsRuntime { get; set; }
+    [Inject] private IUpdateDatasourceService UpdateDatasourceService { get; set; }
     
     private Lazy<IJSObjectReference> _accessorJsRef = new ();
+    private bool _canConnectUpdateDataSource { get; set; }
     
     private async Task WaitForReference()
     {
@@ -29,6 +32,7 @@ public partial class Navbar : ComponentBase, IAsyncDisposable
 
     protected override async Task OnInitializedAsync()
     {
+        _canConnectUpdateDataSource = await UpdateDatasourceService.CanConnectAsync();
         navigationManager.LocationChanged += (s, e) => StateHasChanged();
         await base.OnInitializedAsync();
     }

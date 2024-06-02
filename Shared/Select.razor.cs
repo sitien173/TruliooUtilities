@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using TruliooExtension.Model;
+using TruliooExtension.Common;
 
 namespace TruliooExtension.Shared;
 

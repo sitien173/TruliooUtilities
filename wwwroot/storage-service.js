@@ -1,5 +1,5 @@
 ﻿import * as _ from './node_modules/localforage/dist/localforage.min.js';
-const dbName = 'TruliooExtApp';
+import {constantStrings} from './common.mjs';
 export const setItem = async (instanceName, key, value) => {
     const instance = getInstances(instanceName);
     await instance.setItem(key, value);
@@ -44,7 +44,7 @@ export const nextId = async (instanceName) => {
 
 export const getInstances =  (instanceName) => {
     return localforage.createInstance({
-        name: dbName,
+        name: constantStrings.DbName,
         storeName: instanceName,
     });
 }

@@ -21,12 +21,15 @@
                 <InputText class="form-control" @bind-Value="_model.MatchTemplate" />
             </div>
             
-            <div class="mb-3">
-                <label class="form-label">Admin Portal Endpoint</label>
-                <InputText class="form-control" @bind-Value="_model.AdminPortalEndpoint" />
-                <ValidationMessage For="@(() => _model.AdminPortalEndpoint)" />
-            </div>
-
+            @if (_canConnectUpdateDataSource)
+            {
+                <div class="mb-3">
+                    <label class="form-label">Admin Portal Endpoint</label>
+                    <InputText class="form-control" @bind-Value="_model.AdminPortalEndpoint" />
+                    <ValidationMessage For="@(() => _model.AdminPortalEndpoint)" />
+                </div>
+            }
+            
             <div class="mb-3">
                 <label class="form-label">
                     <InputCheckbox @bind-Value="_model.RefreshOnFill"/> Refresh On Fill

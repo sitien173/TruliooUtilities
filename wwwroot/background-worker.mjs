@@ -1,6 +1,6 @@
 ﻿import browser from './content/Blazor.BrowserExtension/lib/browser-polyfill.js';
 import {getItem, getAll, getKeys, setItem} from './storage-service.js';
-
+import {constantStrings} from './common.mjs';
 const {
     quicktype,
     InputData,
@@ -9,7 +9,7 @@ const localforage = require('localforage');
 self.localforage = localforage;
 
 browser.runtime.onStartup.addListener(async function () {
-    const rules = await getAll('CSP');
+    const rules = await getAll(constantStrings.Tables.CSPManager);
     const keywords = rules.map(x => x.url);
     await updateUnblockRulesAdd(keywords)
 });
@@ -21,7 +21,7 @@ browser.runtime.onInstalled.addListener(async () => {
     } catch (e) {
         localforage.config({
             driver: localforage.INDEXEDDB,
-            name: 'TruliooExtApp',
+            name: constantStrings.DbName,
             version: 1.0,
             storeName: 'keyvaluepairs',
             description: 'Trulioo Extension App'
@@ -35,50 +35,50 @@ browser.runtime.onInstalled.addListener(async () => {
 
     // Create parent menu item
     browser.contextMenus.create({
-        id: "truExtMenu",
+        id: constantStrings.ContextMenusID.MainId,
         title: "TruliooExt",
         contexts: ["all"]
     });
 
     // Create child menu items
     browser.contextMenus.create({
-        parentId: "truExtMenu",
-        id: "pasteToCp",
+        parentId: constantStrings.ContextMenusID.MainId,
+        id: constantStrings.ContextMenusID.PasteToCp,
         title: "Paste to CP",
         contexts: ["all"]
     });
 
     browser.contextMenus.create({
-        parentId: "truExtMenu",
-        id: "fillToCp",
+        parentId: constantStrings.ContextMenusID.MainId,
+        id: constantStrings.ContextMenusID.FillToCp,
         title: "Fill to CP",
         contexts: ["all"]
     });
     
     browser.contextMenus.create({
-        parentId: "truExtMenu",
-        id: "printDSGroupVariantSetup",
+        parentId: constantStrings.ContextMenusID.MainId,
+        id: constantStrings.ContextMenusID.PrintDsGroupVariantSetup,
         title: "DSGroup variant setup",
         contexts: ["all"]
     });
 
     browser.contextMenus.create({
-        parentId: "truExtMenu",
-        id: "generateUnitTestsVariantSetup",
+        parentId: constantStrings.ContextMenusID.MainId,
+        id: constantStrings.ContextMenusID.GenerateUnitTestsVariantSetup,
         title: "Generate Unit Tests Variant Setup",
         contexts: ["all"]
     });
     
     browser.contextMenus.create({
-        parentId: "truExtMenu",
-        id: "jsonToClass",
+        parentId: constantStrings.ContextMenusID.MainId,
+        id: constantStrings.ContextMenusID.JsonToClass,
         title: "JSON to Class",
         contexts: ["all"]
     });
 
     browser.contextMenus.create({
-        parentId: "truExtMenu",
-        id: "jsonToObjectInitializer",
+        parentId: constantStrings.ContextMenusID.MainId,
+        id: constantStrings.ContextMenusID.JsonToObjectInitializer,
         title: "JSON to Object Initializer",
         contexts: ["all"]
     });
@@ -88,34 +88,34 @@ browser.runtime.onInstalled.addListener(async () => {
 browser.contextMenus.onClicked.addListener(async (info, tab) => {
     // send message to mark content script enable loading spinner
     switch (info.menuItemId) {
-        case "pasteToCp":
-            await browser.tabs.sendMessage(tab.id, { action: "PasteToCp" });
+        case constantStrings.ContextMenusID.PasteToCp:
+            await browser.tabs.sendMessage(tab.id, {action: constantStrings.MessageAction.PasteToCp});
             break;
-        case "fillToCp":
+        case constantStrings.ContextMenusID.FillToCp:
             const customFields = await getCustomFields();
-            await browser.tabs.sendMessage(tab.id, { action: "FillToCp", customFields: customFields });
+            await browser.tabs.sendMessage(tab.id, {action: constantStrings.MessageAction.FillToCp, customFields: customFields});
             break;
-        case "printDSGroupVariantSetup":
-            await browser.tabs.sendMessage(tab.id, { action: "PrintDSGroupVariantSetup" });
+        case constantStrings.ContextMenusID.PrintDsGroupVariantSetup:
+            await browser.tabs.sendMessage(tab.id, {action: constantStrings.MessageAction.PrintDsGroupVariantSetup});
             break;
-        case "generateUnitTestsVariantSetup":
-            await browser.tabs.sendMessage(tab.id, { action: "GenerateUnitTestsVariantSetup" });
+        case constantStrings.ContextMenusID.GenerateUnitTestsVariantSetup:
+            await browser.tabs.sendMessage(tab.id, {action: constantStrings.MessageAction.GenerateUnitTestsVariantSetup});
             break;
-        case "jsonToClass":
-            await handleJsonConversion("JsonToClass", tab.id);
+        case constantStrings.ContextMenusID.JsonToClass:
+            await handleJsonConversion(constantStrings.MessageAction.JsonToClass, tab.id);
             break;
-        case "jsonToObjectInitializer":
-            await handleJsonConversion("JsonToObjectInitializer", tab.id);
+        case constantStrings.ContextMenusID.JsonToObjectInitializer:
+            await handleJsonConversion(constantStrings.MessageAction.JsonToObjectInitializer, tab.id);
             break;
     }
 });
 
 browser.commands.onCommand.addListener((command) => {
     (async () => {
-        if(command === 'fill-input'){
+        if(command === constantStrings.Command.FillInput){
             const tabId = await getCurrentTabId();
             const customFields = await getCustomFields();
-            await browser.tabs.sendMessage(tabId, { action: "FillToCp", customFields: customFields });
+            await browser.tabs.sendMessage(tabId, { action: constantStrings.MessageAction.FillToCp, customFields: customFields });
         }
     })();
     return true;
@@ -133,10 +133,10 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         {
             if(changeInfo.url.search('eidv') > 0)
             {
-                browser.tabs.sendMessage(tabId, { action: "CreateKYCButton", transactionRecordId: transactionRecordId });
+                browser.tabs.sendMessage(tabId, { action: constantStrings.MessageAction.CreateKYCButton, transactionRecordId: transactionRecordId });
             }
             else {
-                browser.tabs.sendMessage(tabId, { action: "CreateKYBButton", transactionRecordId: transactionRecordId, url: changeInfo.url});
+                browser.tabs.sendMessage(tabId, { action: constantStrings.MessageAction.CreateKYBButton, transactionRecordId: transactionRecordId, url: changeInfo.url});
             }
         }
     }
@@ -145,11 +145,11 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         (async () => {
             switch (message.action){
-                case 'update-rule':
+                case constantStrings.MessageAction.UpdateRule:
                     await updateUnblockRulesAdd((await getAll('CSP')).map(x => x.url));
                     sendResponse('update rule successfully');
                     break;
-                case 'remove-rule':
+                case constantStrings.MessageAction.RemoveRule:
                     await updateUnblockRulesRemove((await getAll('CSP')).filter(x => x.id !== message.id).map(x => x.url))
                     sendResponse('update rule successfully');
                     break;
@@ -186,8 +186,9 @@ async function quicktypeJSON(targetLanguage, typeName, jsonString) {
         combineClasses: true,
         ignoreJsonRefs: true,
         rendererOptions: {
-            'justTypes': 'true',
-            'namespace': "TruliooExtApp"
+            'just-types': 'true',
+            'explicit-unions': 'true',
+            'namespace': constantStrings.AssemblyName
         }
     });
 }
@@ -195,27 +196,27 @@ async function quicktypeJSON(targetLanguage, typeName, jsonString) {
 async function getCustomFields() {
     const config = await getConfig();
     const tabId = await getCurrentTabId();
-    let culture = await browser.tabs.sendMessage(tabId, { action: 'CurrentCulture' });
+    let culture = await browser.tabs.sendMessage(tabId, { action: constantStrings.MessageAction.CurrentCulture });
 
-    let cultureKey = config?.currentCulture || 'en';
+    let cultureKey = config?.currentCulture || constantStrings.DefaultCulture;
     if (culture) {
-        const keys = await getKeys('CustomFieldGroup');
+        const keys = await getKeys(constantStrings.Tables.CustomFieldGroup);
         culture = keys.find(x => x.match(culture));
         cultureKey = culture || cultureKey;
         config.currentCulture = cultureKey;
-        await setItem('Settings', 'GlobalConfiguration', config);
+        await setItem(constantStrings.Tables.Temp, constantStrings.Tables.GlobalConfiguration, config);
     }
 
-    const data = await getItem('CustomFieldGroup', cultureKey);
+    const data = await getItem(constantStrings.Tables.CustomFieldGroup, cultureKey);
 
     if (!data.enable) {
         return [];
     }
 
     if (config.refreshOnFill) {
-        const globalData = await getItem('CustomFieldGroup', 'global');
+        const globalData = await getItem(constantStrings.Tables.CustomFieldGroup, 'global');
         const result = await browser.tabs.sendMessage(tabId, {
-            action: "RefreshCustomFields",
+            action: constantStrings.MessageAction.RefreshCustomFields,
             customFieldGroup: data,
             customFieldGroupGlobal: globalData,
             globalConfig: config
@@ -229,11 +230,11 @@ async function getCustomFields() {
 
 
 const getConfig = async () => {
-    return await getItem('Settings', 'GlobalConfiguration');
+    return await getItem(constantStrings.Tables.Temp, constantStrings.Tables.GlobalConfiguration);
 }
 
 async function handleJsonConversion(actionType, tabId) {
-    const selectedText = await browser.tabs.sendMessage(tabId, { action: "GetSelectedText" });
+    const selectedText = await browser.tabs.sendMessage(tabId, {action: constantStrings.MessageAction.GetSelectedText});
     try {
         const json = removeNBSP(selectedText);
         const { lines: example } = await quicktypeJSON('csharp', 'Example', json);
@@ -247,7 +248,7 @@ async function handleJsonConversion(actionType, tabId) {
             classCode: classCode,
         };
 
-        if (actionType === "JsonToObjectInitializer") {
+        if (actionType === constantStrings.MessageAction.JsonToObjectInitializer) {
             message.extensionID = browser.runtime.id;
             message.json = json;
         }

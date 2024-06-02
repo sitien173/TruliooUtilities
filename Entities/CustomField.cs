@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using Fare;
 
-namespace TruliooExtension.Model;
+namespace TruliooExtension.Entities;
 
 public class CustomField : INotifyPropertyChanged
 {

@@ -1,4 +1,4 @@
-﻿using TruliooExtension.Model;
+﻿using TruliooExtension.Entities;
 
 namespace TruliooExtension.Services;
 public interface IGlobalConfigurationService
@@ -7,18 +7,17 @@ public interface IGlobalConfigurationService
     Task SaveAsync(GlobalConfiguration model);
     Task InitializeAsync();
 }
-public class GlobalConfigurationService(IStorageService storageService) : IGlobalConfigurationService
+public class GlobalConfigurationService(IStorageService storageService, IConfigurationProvider configurationProvider) : IGlobalConfigurationService
 {
-    private const string _key = nameof(GlobalConfiguration);
     public async Task<GlobalConfiguration?> GetAsync()
     {
-        var result = await storageService.GetAsync<string, GlobalConfiguration>(ConstantStrings.SettingTable, _key);
+        var result = await storageService.GetAsync<string, GlobalConfiguration>((await configurationProvider.GetAppSettingsAsync()).Tables.Temp, (await configurationProvider.GetAppSettingsAsync()).Tables.GlobalConfiguration);
         return result;
     }
 
-    public Task SaveAsync(GlobalConfiguration model)
+    public async Task SaveAsync(GlobalConfiguration model)
     {
-        return storageService.SetAsync<string, GlobalConfiguration>(ConstantStrings.SettingTable, _key, model);
+        await storageService.SetAsync((await configurationProvider.GetAppSettingsAsync()).Tables.Temp, (await configurationProvider.GetAppSettingsAsync()).Tables.GlobalConfiguration, model);
     }
 
     public async Task InitializeAsync()
@@ -26,7 +25,15 @@ public class GlobalConfigurationService(IStorageService storageService) : IGloba
         var result = await GetAsync();
         if (result == null)
         {
-            await SaveAsync(new GlobalConfiguration());
+            var appSettings = await configurationProvider.GetAppSettingsAsync();
+            var model = new GlobalConfiguration()
+            {
+                CurrentCulture = appSettings.DefaultCulture,
+                MatchTemplate = appSettings.CustomFieldMatchTemplate,
+                AdminPortalEndpoint = appSettings.AdminPortalEndpoint.ToString(),
+                RefreshOnFill = true
+            };
+            await SaveAsync(model);
         }
     }
 }

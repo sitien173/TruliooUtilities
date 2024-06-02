@@ -1,5 +1,4 @@
-﻿@using Humanizer
-@using Blazored.Toast
+﻿@using Blazored.Toast
 @using Blazored.Toast.Configuration
 @inherits LayoutComponentBase
 
@@ -20,7 +19,7 @@
                         innerException = ex.InnerException;
                     }
 
-                    string message = (innerException?.Message ?? ex.Message).Humanize();
+                    string message = (innerException?.Message ?? ex.Message);
                     <div class="alert alert-danger" role="alert">
                         <strong>Error:</strong> @message
                     </div>

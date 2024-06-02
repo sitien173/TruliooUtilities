@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using TruliooExtension.Pages;
 using TruliooExtension.Services;
+using ConfigurationProvider = TruliooExtension.Services.ConfigurationProvider;
+using IConfigurationProvider = TruliooExtension.Services.IConfigurationProvider;
 
 namespace TruliooExtension
 {
@@ -34,6 +36,7 @@ namespace TruliooExtension
             builder.Services.AddScoped<IToastService, ToastService>();
             builder.Services.AddScoped<IUpdateDatasourceService, UpdateDatasourceService>();
             builder.Services.AddScoped<ICSPManagerService, CSPManagerService>();
+            builder.Services.AddSingleton<IConfigurationProvider, ConfigurationProvider>();
             var host = builder.Build();
             
             var extensionEnvironment = host.Services.GetRequiredService<IBrowserExtensionEnvironment>().Mode;

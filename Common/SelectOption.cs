@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TruliooExtension.Model;
+namespace TruliooExtension.Common;
 
 public class SelectOption
 {

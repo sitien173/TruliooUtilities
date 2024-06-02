@@ -1,6 +1,6 @@
 ﻿using AsyncAwaitBestPractices;
+using TruliooExtension.Entities;
 using TruliooExtension.JSInvokers;
-using TruliooExtension.Model;
 
 namespace TruliooExtension.Services;
 
@@ -12,24 +12,24 @@ public interface ICustomFieldGroupService
     Task InitializeAsync();
 }
 
-public class CustomFieldGroupService(IStorageService storageService, IGlobalConfigurationService configService, ILocaleService localeService)
+public class CustomFieldGroupService(IStorageService storageService, IGlobalConfigurationService configService, ILocaleService localeService, IConfigurationProvider configurationProvider)
     : ICustomFieldGroupService
 {
-    private const string _key = nameof(CustomFieldGroup);
     public async Task<CustomFieldGroup?> GetAsync(string culture)
     {
-        var result = await storageService.GetAsync<string, CustomFieldGroup>(_key, culture);
+        var result = await storageService.GetAsync<string, CustomFieldGroup>((await configurationProvider.GetAppSettingsAsync()).Tables.CustomFieldGroup, culture);
         return result;
     }
     
     public async Task SaveAsync(CustomFieldGroup customFieldGroup)
     {
-        await storageService.SetAsync(_key, customFieldGroup.Culture, customFieldGroup);
+        await storageService.SetAsync((await configurationProvider.GetAppSettingsAsync()).Tables.CustomFieldGroup, customFieldGroup.Culture, customFieldGroup);
     }
 
     public async Task RefreshAsync(string culture)
     {
-        if (culture == "global")
+        var customFieldGroupGlobalKey = (await configurationProvider.GetAppSettingsAsync()).CustomFieldGroupGlobalKey; 
+        if (culture == customFieldGroupGlobalKey)
             return;
         
         var customFieldGroup = await GetAsync(culture) ?? new CustomFieldGroup()
@@ -38,9 +38,9 @@ public class CustomFieldGroupService(IStorageService storageService, IGlobalConf
             Enable = true
         };
         
-        var customFieldGroupGlobal = await GetAsync("global") ?? new CustomFieldGroup()
+        var customFieldGroupGlobal = await GetAsync(customFieldGroupGlobalKey) ?? new CustomFieldGroup()
         {
-            Culture = "global",
+            Culture = customFieldGroupGlobalKey,
             Enable = true
         };
         
@@ -51,7 +51,7 @@ public class CustomFieldGroupService(IStorageService storageService, IGlobalConf
 
     public async Task InitializeAsync()
     {
-        var allKeys = await storageService.GetAllKeysAsync(_key);
+        var allKeys = await storageService.GetAllKeysAsync((await configurationProvider.GetAppSettingsAsync()).Tables.CustomFieldGroup);
         var locales = (await localeService.GetLocalesAsync()).Select(x => x.Key).Except(allKeys).ToList();
         foreach (string locale in locales)
         {

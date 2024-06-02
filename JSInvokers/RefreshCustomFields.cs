@@ -1,5 +1,7 @@
 ﻿using Microsoft.JSInterop;
-using TruliooExtension.Model;
+using TruliooExtension.Common;
+using TruliooExtension.Entities;
+using ConfigurationProvider = TruliooExtension.Services.ConfigurationProvider;
 
 namespace TruliooExtension.JSInvokers;
 
@@ -21,9 +23,9 @@ public static class RefreshCustomFields
             var customField = customFieldGroup.CustomFields
                 .Concat(customFieldGroupGlobal.CustomFields)
                 .LastOrDefault(x => x.IsCustomize && x.DataField == property.Name);
-            
-            
-            var match = customField?.Match ?? globalConfiguration?.MatchTemplate ?? ConstantStrings.CustomFieldMatchTemplate;
+
+
+            var match = customField?.Match ?? globalConfiguration.MatchTemplate;
             match = string.Format(match, property.Name);
 
             customFields.Add(new CustomField
