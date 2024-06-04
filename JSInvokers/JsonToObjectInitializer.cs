@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.JSInterop;
@@ -12,6 +13,15 @@ namespace TruliooExtension.JSInvokers;
 public static class JsonToObjectInitializer
 {
     private static readonly Dictionary<string, MetadataReference> _metadataReferenceCache = new();
+    private static readonly Dictionary<string, string> _namespaces = new Dictionary<string, string>
+    {
+        { "System", "System.Runtime" },
+        { "System.Collections.Generic", "System.Collections" },
+        { "System.Globalization", "System.Globalization" },
+        { "Newtonsoft.Json", "Newtonsoft.Json" },
+        { "Newtonsoft.Json.Converters", "Newtonsoft.Json" }
+    };
+    private static readonly string[] _additionalNamespaces = [ "System.Private.CoreLib", "System.Private.Uri" ];
     private static readonly HttpClient _httpClient = new();
     
     [JSInvokable("JsonToObjectInitializer")]
@@ -20,7 +30,7 @@ public static class JsonToObjectInitializer
         try
         {
             var scriptAssembly = await CompileToDllAssembly(extensionID, csharpClassCode, release: true);
-            Type type = scriptAssembly.GetType("TruliooExtApp.Example")!;
+            Type type = scriptAssembly.GetType("TruliooExtension.Example")!;
 
             object? obj = JsonConvert.DeserializeObject(json, type);
             return ObjectInitializerHelper.ObjectInitializer(obj);
@@ -31,10 +41,8 @@ public static class JsonToObjectInitializer
         }
     }
     
-    private static async Task<MetadataReference> GetAssemblyMetadataReference(Assembly assembly, string extensionID)
+    private static async Task<MetadataReference> GetAssemblyMetadataReference(string assemblyName, string extensionID)
     {
-        string assemblyName = assembly.GetName().Name ?? throw new ArgumentNullException(nameof(assembly), "Assembly name is null");
-
         if (_metadataReferenceCache.TryGetValue(assemblyName, out MetadataReference? cachedReference))
             return cachedReference;
 
@@ -74,10 +82,14 @@ public static class JsonToObjectInitializer
 
         SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sourceText, parseOptions);
 
-        MetadataReference[] references = await Task.WhenAll(Assembly.GetEntryAssembly()!
-            .GetReferencedAssemblies()
-            .Select(Assembly.Load)
-            .Concat(new[] { typeof(object).Assembly, typeof(Uri).Assembly })
+        MetadataReference[] references = await Task.WhenAll(syntaxTree
+            .GetCompilationUnitRoot()
+            .DescendantNodes()
+            .OfType<UsingDirectiveSyntax>()
+            .Select(x => _namespaces.TryGetValue(x.Name.ToFullString(), out var val) ? val : string.Empty)
+            .Concat(_additionalNamespaces)
+            .Where(x => !string.IsNullOrEmpty(x))
+            .Distinct()
             .Select(assembly => GetAssemblyMetadataReference(assembly, extensionID)));
 
         CSharpCompilationOptions compilationOptions = new(

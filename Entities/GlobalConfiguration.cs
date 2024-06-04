@@ -7,8 +7,7 @@ namespace TruliooExtension.Entities;
 public class GlobalConfiguration
 {
     [Required] 
-    public string CurrentCulture { get; set; } = "en";
-
+    public string CurrentCulture { get; set; }
     public string MatchTemplate { get; set; }
     [Url]
     public string AdminPortalEndpoint { get; set; }

@@ -11,13 +11,13 @@ public class GlobalConfigurationService(IStorageService storageService, IConfigu
 {
     public async Task<GlobalConfiguration?> GetAsync()
     {
-        var result = await storageService.GetAsync<string, GlobalConfiguration>((await configurationProvider.GetAppSettingsAsync()).Tables.Temp, (await configurationProvider.GetAppSettingsAsync()).Tables.GlobalConfiguration);
+        var result = await storageService.GetAsync<string, GlobalConfiguration>((await configurationProvider.GetAppSettingsAsync()).Tables.Temp, nameof(GlobalConfiguration));
         return result;
     }
 
     public async Task SaveAsync(GlobalConfiguration model)
     {
-        await storageService.SetAsync((await configurationProvider.GetAppSettingsAsync()).Tables.Temp, (await configurationProvider.GetAppSettingsAsync()).Tables.GlobalConfiguration, model);
+        await storageService.SetAsync((await configurationProvider.GetAppSettingsAsync()).Tables.Temp, nameof(GlobalConfiguration), model);
     }
 
     public async Task InitializeAsync()

@@ -57,7 +57,6 @@
 
     public class Tables
     {
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)][J("GlobalConfiguration")] public string GlobalConfiguration { get; set; }
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)][J("CSPManager")]          public string CspManager { get; set; }         
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)][J("CustomFieldGroup")]    public string CustomFieldGroup { get; set; }   
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)][J("Temp")]                public string Temp { get; set; }               

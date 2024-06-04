@@ -174,20 +174,13 @@ async function quicktypeJSON(targetLanguage, typeName, jsonString) {
     return await quicktype({
         inputData,
         lang: targetLanguage,
-        indentation: "    ",
-        inferMaps: true,
-        inferEnums: false,
         inferUuids: false,
-        alphabetizeProperties: false,
-        allPropertiesOptional: false,
         inferDateTimes: false,
-        inferIntegerStrings: true,
-        inferBooleanStrings: true,
+        inferIntegerStrings: false,
         combineClasses: true,
-        ignoreJsonRefs: true,
         rendererOptions: {
-            'just-types': 'true',
-            'explicit-unions': 'true',
+            'features': 'attributes-only',
+            'version': '6',
             'namespace': constantStrings.AssemblyName
         }
     });
@@ -197,14 +190,14 @@ async function getCustomFields() {
     const config = await getConfig();
     const tabId = await getCurrentTabId();
     let culture = await browser.tabs.sendMessage(tabId, { action: constantStrings.MessageAction.CurrentCulture });
-
-    let cultureKey = config?.currentCulture || constantStrings.DefaultCulture;
+    
+    let cultureKey = culture ||config?.currentCulture || constantStrings.DefaultCulture;
     if (culture) {
         const keys = await getKeys(constantStrings.Tables.CustomFieldGroup);
-        culture = keys.find(x => x.match(culture));
+        culture = keys.find(x => x.toLowerCase().startsWith(culture) || x.toLowerCase().endsWith(culture));
         cultureKey = culture || cultureKey;
         config.currentCulture = cultureKey;
-        await setItem(constantStrings.Tables.Temp, constantStrings.Tables.GlobalConfiguration, config);
+        await setItem(constantStrings.Tables.Temp, 'GlobalConfiguration', config);
     }
 
     const data = await getItem(constantStrings.Tables.CustomFieldGroup, cultureKey);
@@ -230,7 +223,7 @@ async function getCustomFields() {
 
 
 const getConfig = async () => {
-    return await getItem(constantStrings.Tables.Temp, constantStrings.Tables.GlobalConfiguration);
+    return await getItem(constantStrings.Tables.Temp, 'GlobalConfiguration');
 }
 
 async function handleJsonConversion(actionType, tabId) {

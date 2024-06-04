@@ -10,7 +10,6 @@
     UpdateDatasourcePath: 'api-datasources/update',
     GetDatasourcePath: 'api-datasources/get/',
     Tables: {
-        GlobalConfiguration: 'GlobalConfiguration',
         CSPManager: 'CSP',
         CustomFieldGroup: 'CustomFieldGroup',
         Temp: 'Temp'

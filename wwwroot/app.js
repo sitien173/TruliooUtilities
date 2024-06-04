@@ -87,7 +87,7 @@ function onMessageReceivedEvent(){
                     break;
                 case constantStrings.MessageAction.CurrentCulture:
                     const cultureEle = document.querySelector('div[data-testid=input-page-details-country-value]');
-                    let culture = cultureEle.textContent.substring(cultureEle.textContent.lastIndexOf('(') + 1, cultureEle.textContent.length - 1);
+                    let culture = cultureEle ? cultureEle.textContent.substring(cultureEle.textContent.lastIndexOf('(') + 1, cultureEle.textContent.length - 1).toLowerCase() : null;
                     sendResponse(culture);
                     break;
                 default:

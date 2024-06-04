@@ -1,4 +1,6 @@
-﻿export function closeModal() {
+﻿import { constantStrings } from "../common.mjs";
+
+export function closeModal() {
     $('button.close').click();
     $('.modal-backdrop').remove();
 }

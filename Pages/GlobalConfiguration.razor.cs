@@ -23,9 +23,9 @@ public partial class GlobalConfiguration
     private bool _canConnectUpdateDataSource;
     protected override async Task OnInitializedAsync()
     {
-        _locales = await LocaleService.GetLocalesAsync();
         _model = await GlobalConfigurationService.GetAsync();
         _canConnectUpdateDataSource = await UpdateDatasourceService.CanConnectAsync();
+        _locales = await LocaleService.GetLocalesAsync();
 
         if (_model == null)
         {
