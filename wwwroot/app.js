@@ -10,7 +10,12 @@ export async function beforeStart(options, extensions, blazorBrowserExtension) {
         document.body.appendChild(appDiv);
 
         if (window.location.href.startsWith('https://') && window.location.href.includes('/GDCDebug/DebugRecordTransaction')) {
-            autoExpandAccordionWhenDebug();
+            autoExpandAccordionWhenDebug();  //*[@id="atlas-sidebar-nav"]/div/div[1]/a[3]
+        }
+        
+        const aELe = getElementByXpath("//*[@id=\"atlas-sidebar-nav\"]/div/div[1]/a[3]");
+        if(getElementByXpath("//*[@id=\"atlas-sidebar-nav\"]/div/div[1]/a[3]")) {
+            aELe.setAttribute('href', 'eidv/personMatch');
         }
         
         onMessageReceivedEvent();
@@ -133,15 +138,23 @@ function autoExpandAccordionWhenDebug(){
     });
 }
 
-const domains = {
-    localhost: 'localhost:44331',
-    staging: 'test-adminportal-{region}.staging.trulioo.com',
-    trulioo: 'adminportal.{region}.qa.trulioo.com',
-    other: document.domain.replace("portal", "adminportal").replace("44333", "44331")
-};
-
 function getElementByXpath(path) {
     return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+}
+
+function gotoAdminPortal(transactionRecordID) {
+    let domainString = 'localhost:44331';
+    if (document.domain.includes("staging")) {
+        domainString = "test-adminportal-us.staging.trulioo.com";
+    }
+    else if (document.domain.includes("trulioo")) {
+        domainString = "adminportal.us.qa.trulioo.com";
+    }
+    else if (document.domain !== 'localhost') {
+        domainString = document.domain.replace("portal", "adminportal");
+        domainString = document.domain.replace("44333", "44331");
+    }
+    window.open(`https://${domainString}/GDCDebug/DebugRecordTransaction?transactionRecordID=${transactionRecordID}`, event.ctrlKey ? "_blank" : "trulioo");
 }
 
 function createKybButton(transactionRecordId, url) {
@@ -164,10 +177,7 @@ function createKybButton(transactionRecordId, url) {
             debugButton.type = "button";
             debugButton.className = "btn btn-primary";
             debugButton.textContent = 'Debug';
-            debugButton.onclick = event => {
-                let domainString = domains[Object.keys(domains).find(key => document.domain.includes(key)) || 'other'].replace('{region}', region.toLowerCase());
-                window.open(`https://${domainString}/GDCDebug/DebugRecordTransaction?transactionRecordID=${transactionRecordId}`, event.ctrlKey ? "_blank" : "trulioo");
-            };
+            debugButton.onclick = () => gotoAdminPortal(transactionRecordId);
             if (region === 'US' || document.domain.includes("trulioo")) {
                 div.appendChild(debugButton);
             }
@@ -184,10 +194,7 @@ function createKycButton(transactionRecordId) {
             debugButton.type = "button";
             debugButton.className = "btn btn-primary";
             debugButton.textContent = 'Debug';
-            debugButton.onclick = event => {
-                let domainString = domains[Object.keys(domains).find(key => document.domain.includes(key)) || 'other'].replace('{region}', region.toLowerCase());
-                window.open(`https://${domainString}/GDCDebug/DebugRecordTransaction?transactionRecordID=${transactionRecordId}`, event.ctrlKey ? "_blank" : "trulioo");
-            };
+            debugButton.onclick = () => gotoAdminPortal(transactionRecordId);
             if (region === 'US' || document.domain.includes("trulioo")) {
                 div.appendChild(debugButton);
             }
