@@ -112,7 +112,7 @@ public sealed class FieldFaker : Faker<FieldFaker>
 
     public static List<string> AllFieldName()
     {
-        return typeof(FieldFaker).GetProperties(BindingFlags.Public)
+        return typeof(FieldFaker).GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Select(p => p.Name)
             .ToList();
     }

@@ -144,7 +144,11 @@ function getElementByXpath(path) {
 
 function gotoAdminPortal(transactionRecordID) {
     let domainString = 'localhost:44331';
-    if (document.domain.includes("staging")) {
+    if(document.domain.startsWith('https://192.168.1.63'))
+    {
+        domainString = "https://192.168.1.63:44332";
+    }
+    else if (document.domain.includes("staging")) {
         domainString = "test-adminportal-us.staging.trulioo.com";
     }
     else if (document.domain.includes("trulioo")) {

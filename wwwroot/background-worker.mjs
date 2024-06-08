@@ -207,7 +207,7 @@ async function getCustomFields() {
     }
 
     if (config.refreshOnFill) {
-        const globalData = await getItem(constantStrings.Tables.CustomFieldGroup, 'global');
+        const globalData = (await getItem(constantStrings.Tables.CustomFieldGroup, 'global')) || {};
         const result = await browser.tabs.sendMessage(tabId, {
             action: constantStrings.MessageAction.RefreshCustomFields,
             customFieldGroup: data,
