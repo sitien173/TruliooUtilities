@@ -1,5 +1,5 @@
 ﻿import browser from './content/Blazor.BrowserExtension/lib/browser-polyfill.js';
-import {getItem, getAll, getKeys, setItem} from './storage-service.js';
+import {getItem, getAll} from './storage-service.js';
 import {constantStrings} from './common.mjs';
 const {
     quicktype,
@@ -189,18 +189,7 @@ async function quicktypeJSON(targetLanguage, typeName, jsonString) {
 async function getCustomFields() {
     const config = await getConfig();
     const tabId = await getCurrentTabId();
-    let culture = await browser.tabs.sendMessage(tabId, { action: constantStrings.MessageAction.CurrentCulture });
-    
-    let cultureKey = culture ||config?.currentCulture || constantStrings.DefaultCulture;
-    if (culture) {
-        const keys = await getKeys(constantStrings.Tables.CustomFieldGroup);
-        culture = keys.find(x => x.toLowerCase().startsWith(culture) || x.toLowerCase().endsWith(culture));
-        cultureKey = culture || cultureKey;
-        config.currentCulture = cultureKey;
-        await setItem(constantStrings.Tables.Temp, 'GlobalConfiguration', config);
-    }
-
-    const data = await getItem(constantStrings.Tables.CustomFieldGroup, cultureKey);
+    const data = await getItem(constantStrings.Tables.CustomFieldGroup, config.currentCulture);
 
     if (!data.enable) {
         return [];
@@ -287,7 +276,7 @@ const getCurrentTabId = async () => {
 // Helper function to check if the rule is a CSP related ID (update this based on your logic)
 function isFramerID(id) {
     let idString = String(id)
-    if(idString.length > 4 && idString.substring(idString.length -4, idString.length) == 6794){
+    if(idString.length > 4 && idString.substring(idString.length -4, idString.length) === 6794){
         return true
     }
     return false
@@ -296,7 +285,7 @@ function isFramerID(id) {
 function stringToId(str) {
     let id = str.length
     Array.from(str).forEach( (it) => {
-        id += it.charCodeAt()
+        id += it.charCodeAt(0)
     })
     return id * 10000 + 6794
 }

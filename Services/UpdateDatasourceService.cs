@@ -36,7 +36,7 @@ public class UpdateDatasourceService(
             uriBuilder.Path += (await configurationProvider.GetAppSettingsAsync()).GetDatasourcePath + datasourceID;
 
             datasource = await httpClient.GetFromJsonAsync<Datasource>(uriBuilder.Uri);
-            await storageService.SetAsync((await configurationProvider.GetAppSettingsAsync()).Tables.Temp, (await configurationProvider.GetAppSettingsAsync()).LastFetchDatasourceID, datasourceID.ToString());
+            await storageService.SetAsync((await configurationProvider.GetAppSettingsAsync()).Tables.Temp, (await configurationProvider.GetAppSettingsAsync()).LastFetchDatasourceId, datasourceID.ToString());
         }
         catch (Exception e)
         {
@@ -47,7 +47,7 @@ public class UpdateDatasourceService(
 
     public async Task<Datasource> GetLastUpdatedDatasourceAsync()
     {
-        var datasourceID = await storageService.GetAsync<string, string>((await configurationProvider.GetAppSettingsAsync()).Tables.Temp,(await configurationProvider.GetAppSettingsAsync()).LastFetchDatasourceID);
+        var datasourceID = await storageService.GetAsync<string, string>((await configurationProvider.GetAppSettingsAsync()).Tables.Temp,(await configurationProvider.GetAppSettingsAsync()).LastFetchDatasourceId);
         if(string.IsNullOrEmpty(datasourceID))
         {
             return null;
@@ -72,7 +72,7 @@ public class UpdateDatasourceService(
             uriBuilder.Path += (await configurationProvider.GetAppSettingsAsync()).UpdateDatasourcePath;
 
             await httpClient.PutAsJsonAsync(uriBuilder.Uri, datasource);
-            await storageService.SetAsync((await configurationProvider.GetAppSettingsAsync()).Tables.Temp, (await configurationProvider.GetAppSettingsAsync()).LastUpdatedDatasourceID, datasource.ID);
+            await storageService.SetAsync((await configurationProvider.GetAppSettingsAsync()).Tables.Temp, (await configurationProvider.GetAppSettingsAsync()).LastUpdatedDatasourceId, datasource.ID);
         }
         catch (Exception e)
         {

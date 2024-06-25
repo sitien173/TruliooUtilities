@@ -57,10 +57,6 @@
         <Exec Command="npm run build" WorkingDirectory="$(MSBuildProjectDirectory)\bin\Debug\net8.0\browserextension" ContinueOnError="false">
             <Output TaskParameter="ExitCode" PropertyName="NpmBuildExitCode" />
         </Exec>
-        <Error Condition="'$(NpmBuildExitCode)' != '0'" Text="npm run build failed. Retrying..." />
-        <Exec Command="npm run build" WorkingDirectory="$(MSBuildProjectDirectory)\bin\Debug\net8.0\browserextension" Condition="'$(NpmBuildExitCode)' != '0'" ContinueOnError="false">
-            <Output TaskParameter="ExitCode" PropertyName="NpmBuildRetryExitCode" />
-        </Exec>
     </Target>
     
     <ItemGroup>

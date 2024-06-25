@@ -8,7 +8,7 @@ namespace TruliooExtension.Helpers
     {
         public static string ObjectInitializer<T>(T? obj)
         {
-            if (obj == null)
+            if (Equals(obj, default(T)))
                 return string.Empty;
             
             StringBuilder sb = new ();

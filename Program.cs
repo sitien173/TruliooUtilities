@@ -44,7 +44,6 @@ namespace TruliooExtension
             {
                 // Initialize services
                 await host.Services.GetRequiredService<IGlobalConfigurationService>().InitializeAsync();
-                await host.Services.GetRequiredService<ICustomFieldGroupService>().InitializeAsync();
             }
             await host.RunAsync();
         }

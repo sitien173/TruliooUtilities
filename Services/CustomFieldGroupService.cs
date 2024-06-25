@@ -9,7 +9,6 @@ public interface ICustomFieldGroupService
     Task<CustomFieldGroup?> GetAsync(string culture);
     Task SaveAsync(CustomFieldGroup customFieldGroup);
     Task RefreshAsync(string culture);
-    Task InitializeAsync();
 }
 
 public class CustomFieldGroupService(IStorageService storageService, IGlobalConfigurationService configService, ILocaleService localeService, IConfigurationProvider configurationProvider)
@@ -47,15 +46,5 @@ public class CustomFieldGroupService(IStorageService storageService, IGlobalConf
         var globalConfiguration = await configService.GetAsync();
         customFieldGroup.CustomFields = RefreshCustomFields.GetCustomFields(customFieldGroup, customFieldGroupGlobal, globalConfiguration!);
         await SaveAsync(customFieldGroup);
-    }
-
-    public async Task InitializeAsync()
-    {
-        var allKeys = await storageService.GetAllKeysAsync((await configurationProvider.GetAppSettingsAsync()).Tables.CustomFieldGroup);
-        var locales = (await localeService.GetLocalesAsync()).Select(x => x.Key).Except(allKeys).ToList();
-        foreach (string locale in locales)
-        {
-            RefreshAsync(locale).SafeFireAndForget();
-        }
     }
 }

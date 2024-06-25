@@ -12,12 +12,12 @@ export async function beforeStart(options, extensions, blazorBrowserExtension) {
         if (window.location.href.startsWith('https://') && window.location.href.includes('/GDCDebug/DebugRecordTransaction')) {
             autoExpandAccordionWhenDebug();  //*[@id="atlas-sidebar-nav"]/div/div[1]/a[3]
         }
-        
+
         const aELe = getElementByXpath("//*[@id=\"atlas-sidebar-nav\"]/div/div[1]/a[3]");
         if(getElementByXpath("//*[@id=\"atlas-sidebar-nav\"]/div/div[1]/a[3]")) {
             aELe.setAttribute('href', 'eidv/personMatch');
         }
-        
+
         onMessageReceivedEvent();
     }
 }
@@ -90,11 +90,6 @@ function onMessageReceivedEvent(){
                         sendResponse([]);
                     }
                     break;
-                case constantStrings.MessageAction.CurrentCulture:
-                    const cultureEle = document.querySelector('div[data-testid=input-page-details-country-value]');
-                    let culture = cultureEle ? cultureEle.textContent.substring(cultureEle.textContent.lastIndexOf('(') + 1, cultureEle.textContent.length - 1).toLowerCase() : null;
-                    sendResponse(culture);
-                    break;
                 default:
                     console.log("Unknown action in content script: " + message.action);
                     sendResponse("Unknown action");
@@ -144,9 +139,9 @@ function getElementByXpath(path) {
 
 function gotoAdminPortal(transactionRecordID) {
     let domainString = 'localhost:44331';
-    if(document.domain.startsWith('https://192.168.1.63'))
+    if(document.domain.startsWith('192.168'))
     {
-        domainString = "https://192.168.1.63:44332";
+        domainString = document.domain + ":44331";
     }
     else if (document.domain.includes("staging")) {
         domainString = "test-adminportal-us.staging.trulioo.com";
@@ -198,9 +193,15 @@ function createKycButton(transactionRecordId) {
             debugButton.type = "button";
             debugButton.className = "btn btn-primary";
             debugButton.textContent = 'Debug';
+            
             debugButton.onclick = () => gotoAdminPortal(transactionRecordId);
             if (region === 'US' || document.domain.includes("trulioo")) {
                 div.appendChild(debugButton);
+                const buttons = div.querySelectorAll('button');
+                if(buttons.length > 2)
+                {
+                    buttons[1].remove();
+                }
             }
         });
     }

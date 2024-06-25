@@ -16,8 +16,7 @@ public class ConfigurationProvider(IJSRuntime jsRuntime) : IConfigurationProvide
     {
         if (!_commonModule.IsValueCreated)
         {
-            _commonModule = new Lazy<IJSObjectReference>(
-                    await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./common.mjs"));
+            _commonModule = new Lazy<IJSObjectReference>(await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./common.mjs"));
         }
     }
     
