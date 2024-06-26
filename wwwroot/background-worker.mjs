@@ -239,17 +239,33 @@ async function handleJsonConversion(actionType, tabId) {
         
         if(jsonConfig.standardizeIdProperty)
         {
-            classCode = standardizeIdProperty(classCode);
+            classCode = standardizeIdProperty(classCode, jsonConfig.generateVirtualProperties);
         }
         
         if(jsonConfig.setDefaultEmptyCollection)
         {
-            classCode = setDefaultEmptyCollection(classCode);
+            classCode = setDefaultEmptyCollection(classCode, jsonConfig.generateVirtualProperties);
+        }
+
+        if(!jsonConfig.detectUrls)
+        {
+            if(jsonConfig.generateVirtualProperties) 
+            {
+                classCode = classCode.replace(/(public\s+virtual\s+Uri\s+\w+\s+{\s+get;\s+set;\s+})/g, (match, p1) => {
+                    return p1.replace(/Uri/, 'string');
+                });
+            }
+            else 
+            {
+                classCode = classCode.replace(/(public\s+Uri\s+\w+\s+{\s+get;\s+set;\s+})/g, (match, p1) => {
+                    return p1.replace(/Uri/, 'string');
+                });
+            }
         }
         
         if(jsonConfig.setDefaultStringEmpty)
         {
-            classCode = setDefaultStringEmpty(classCode);
+            classCode = setDefaultStringEmpty(classCode, jsonConfig.generateVirtualProperties);
         }
 
         const message = {
@@ -276,51 +292,49 @@ function removeNBSP(str)
     return str.replace(/\u00A0/g, '');
 }
 
-function setDefaultEmptyCollection(csharpCodeClass)
+function setDefaultEmptyCollection(csharpCodeClass, generateVirtualProperties)
 {
-    // array property with default value = Array.Empty<T>()
-    csharpCodeClass = csharpCodeClass.replace(/(public\s+(\w+)\[]\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = Array.Empty<$2>();");
-    
-    // virtual array property with default value = Array.Empty<T>()
-    csharpCodeClass = csharpCodeClass.replace(/(public\s+virtual\s+(\w+)\[]\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = Array.Empty<$2>();");
-    
-    // list property with default value = new List<T>()
-    csharpCodeClass = csharpCodeClass.replace(/(public\s+List<(\w+)>\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = new List<$2>();");
-    
-    // virtual list property with default value = new List<T>()
-    csharpCodeClass = csharpCodeClass.replace(/(public\s+virtual\s+List<(\w+)>\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = new List<$2>();");
-    
-    // Dictionary property with default value = new Dictionary<TKey, TValue>()
-    csharpCodeClass = csharpCodeClass.replace(/(public\s+Dictionary<(\w+,\s*\w+)>\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = new Dictionary<$2>();");
-    
-    // virtual Dictionary property with default value = new Dictionary<TKey, TValue>()
-    csharpCodeClass = csharpCodeClass.replace(/(public\s+virtual\s+Dictionary<(\w+,\s*\w+)>\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = new Dictionary<$2>();");
-
+    if(generateVirtualProperties) 
+    {
+        csharpCodeClass = csharpCodeClass.replace(/(public\s+(\w+)\[]\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = Array.Empty<$2>();");
+        csharpCodeClass = csharpCodeClass.replace(/(public\s+List<(\w+)>\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = new List<$2>();");
+        csharpCodeClass = csharpCodeClass.replace(/(public\s+Dictionary<(\w+,\s*\w+)>\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = new Dictionary<$2>();");
+    }
+    else 
+    {
+        csharpCodeClass = csharpCodeClass.replace(/(public\s+virtual\s+(\w+)\[]\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = Array.Empty<$2>();");
+        csharpCodeClass = csharpCodeClass.replace(/(public\s+virtual\s+List<(\w+)>\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = new List<$2>();");
+        csharpCodeClass = csharpCodeClass.replace(/(public\s+virtual\s+Dictionary<(\w+,\s*\w+)>\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = new Dictionary<$2>();");
+    }
     return csharpCodeClass;
 }
 
-function setDefaultStringEmpty(csharpCodeClass)
+function setDefaultStringEmpty(csharpCodeClass, generateVirtualProperties)
 {
-    // string property with default value = string.Empty
-    csharpCodeClass = csharpCodeClass.replace(/(public\s+string\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = string.Empty;");
-    
-    // virtual string property with default value = string.Empty
-    csharpCodeClass = csharpCodeClass.replace(/(public\s+virtual\s+string\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = string.Empty;");
-
+    if(generateVirtualProperties)
+    {
+        csharpCodeClass = csharpCodeClass.replace(/(public\s+virtual\s+string\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = string.Empty;");
+    }
+    else 
+    {
+        csharpCodeClass = csharpCodeClass.replace(/(public\s+string\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = string.Empty;");
+    }
     return csharpCodeClass;
 }
 
-function standardizeIdProperty(csharpCodeClass) {
-    // Replace Id with ID
-    csharpCodeClass = csharpCodeClass.replace(/public\s*(\w+[?|\s])\s*(id|\w+id|id\w+)\s*\{\s*get;\s*set;\s*}/gi, (match, p1, p2) => {
-        return `public ${p1.trim()} ${p2.replace(/id/i, 'ID')} { get; set; }`;
-    });
-    
-    // virtual property with ID
-    csharpCodeClass = csharpCodeClass.replace(/public\s*virtual\s*(\w+[?|\s])\s*(id|\w+id|id\w+)\s*\{\s*get;\s*set;\s*}/gi, (match, p1, p2) => {
-        return `public virtual ${p1.trim()} ${p2.replace(/id/i, 'ID')} { get; set; }`;
-    });
-    
+function standardizeIdProperty(csharpCodeClass, generateVirtualProperties) {
+    if(generateVirtualProperties)
+    {
+        csharpCodeClass = csharpCodeClass.replace(/public\s*virtual\s*(\w+[?|\s])\s*(id|\w+id|id\w+)\s*\{\s*get;\s*set;\s*}/gi, (match, p1, p2) => {
+            return `public virtual ${p1.trim()} ${p2.replace(/id/i, 'ID')} { get; set; }`;
+        });
+    }
+    else 
+    {
+        csharpCodeClass = csharpCodeClass.replace(/public\s*(\w+[?|\s])\s*(id|\w+id|id\w+)\s*\{\s*get;\s*set;\s*}/gi, (match, p1, p2) => {
+            return `public ${p1.trim()} ${p2.replace(/id/i, 'ID')} { get; set; }`;
+        });
+    }
     return csharpCodeClass;
 }
 

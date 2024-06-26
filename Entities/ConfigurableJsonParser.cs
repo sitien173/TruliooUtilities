@@ -20,6 +20,8 @@ public class ConfigurableJsonParser
     public string TypeUseForNumerics { get; set; }
     public string TypeUseForAny { get; set; }
     public bool DetectUuID { get; set; }
+    
+    public bool DetectUrls { get; set; }
     public bool DetectBooleans { get; set; }
     public bool DetectDates { get; set; }
     public bool DetectEnums { get; set; }

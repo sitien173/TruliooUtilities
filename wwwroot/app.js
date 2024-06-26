@@ -8,7 +8,7 @@ export async function beforeStart(options, extensions, blazorBrowserExtension) {
         const appDiv = document.createElement("div");
         appDiv.id = 'TruliooExtAppID';
         document.body.appendChild(appDiv);
-
+        
         if (window.location.href.startsWith('https://') && window.location.href.includes('/GDCDebug/DebugRecordTransaction')) {
             autoExpandAccordionWhenDebug();
         }
@@ -29,10 +29,66 @@ export async function beforeStart(options, extensions, blazorBrowserExtension) {
 export async function afterStarted(blazor) {
 }
 
+const loader = {
+    __loader: null,
+    show: function () {
+
+        if (this.__loader == null) {
+            const divContainer = document.createElement('div');
+            divContainer.style.position = 'fixed';
+            divContainer.style.left = '0';
+            divContainer.style.top = '0';
+            divContainer.style.width = '100%';
+            divContainer.style.height = '100%';
+            divContainer.style.zIndex = '9998';
+            divContainer.style.backgroundColor = 'rgba(250, 250, 250, 0.80)';
+
+            const div = document.createElement('div');
+            div.style.position = 'absolute';
+            div.style.left = '50%';
+            div.style.top = '50%';
+            div.style.zIndex = '9999';
+            div.style.height = '64px';
+            div.style.width = '64px';
+            div.style.margin = '-76px 0 0 -76px';
+            div.style.border = '8px solid #e1e1e1';
+            div.style.borderRadius = '50%';
+            div.style.borderTop = '8px solid #F36E21';
+            div.animate([
+                { transform: 'rotate(0deg)' },
+                { transform: 'rotate(360deg)' }
+            ], {
+                duration: 2000,
+                iterations: Infinity
+            });
+            divContainer.appendChild(div);
+            this.__loader = divContainer
+            document.body.appendChild(this.__loader);
+        }
+        this.__loader.style.display="";
+    },
+    hide: function(){
+        if(this.__loader!=null)
+        {
+            this.__loader.style.display="none";
+        }
+    }
+}
 function onMessageReceivedEvent(){
     browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         (async () => {
             let alertMessage;
+            let isModalOpen = true;
+            loader.show();
+            
+            setTimeout(function() {
+                if(isModalOpen)
+                {
+                    loader.hide();
+                    alertMessage = "Operation took too long. Please try again.";
+                }
+            }, 5000);
+            
             switch (message.action) {
                 case constantStrings.MessageAction.PasteToCp:   
                     await pasteToCp();
@@ -95,6 +151,10 @@ function onMessageReceivedEvent(){
                     sendResponse("Unknown action");
                     break;
             }
+            
+            loader.hide();
+            isModalOpen = false;
+            
             if(alertMessage)
                 alert(alertMessage);
         })();

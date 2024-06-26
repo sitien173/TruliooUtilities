@@ -105,6 +105,13 @@
             
             <div class="mb-3">
                 <label class="form-label">
+                    <InputCheckbox @bind-Value="_model.DetectUrls"/> Detect URLs
+                    <span class="description">Automatically convert strings to URLs. For example, "https://example.com" is converted to a URL object.</span>
+                </label>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">
                     <InputCheckbox @bind-Value="_model.DetectMaps"/> Detect maps
                     <span class="description">Automatically convert objects to maps. For example, {"a": 1} is converted to a map with a key "a" and a value 1.</span>
                 </label>
