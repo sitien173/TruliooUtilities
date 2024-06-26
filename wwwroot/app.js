@@ -85,7 +85,7 @@ function onMessageReceivedEvent(){
                 if(isModalOpen)
                 {
                     loader.hide();
-                    alertMessage = "Operation took too long. Please try again.";
+                    alert("Operation is taking longer than expected. Please try again later.");
                 }
             }, 5000);
             

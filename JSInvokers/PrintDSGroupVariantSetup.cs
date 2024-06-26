@@ -8,7 +8,7 @@ namespace TruliooExtension.JSInvokers;
 
 public static class PrintDSGroupVariantSetup
 {
-    [JSInvokable("PrintDSGroupVariantSetup")]
+    [JSInvokable("PrintDsGroupVariantSetup")]
     public static string PrintDSGroupVariantSetupInvoker(string dsGroupVariantSetupHtml)
     {
         HtmlDocument doc = new();
