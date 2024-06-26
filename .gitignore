@@ -8,3 +8,4 @@ artifacts/
 *.binlog
 /.idea/
 /wwwroot/node_modules/
+!/bin/Debug/net8.0/browserextension/
