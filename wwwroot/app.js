@@ -10,7 +10,7 @@ export async function beforeStart(options, extensions, blazorBrowserExtension) {
         document.body.appendChild(appDiv);
 
         if (window.location.href.startsWith('https://') && window.location.href.includes('/GDCDebug/DebugRecordTransaction')) {
-            autoExpandAccordionWhenDebug();  //*[@id="atlas-sidebar-nav"]/div/div[1]/a[3]
+            autoExpandAccordionWhenDebug();
         }
 
         const aELe = getElementByXpath("//*[@id=\"atlas-sidebar-nav\"]/div/div[1]/a[3]");
@@ -73,7 +73,7 @@ function onMessageReceivedEvent(){
                     break;
                 case constantStrings.MessageAction.JsonToObjectInitializer:
                     if (message.status === 'ok') {
-                        const result = await DotNet.invokeMethodAsync(constantStrings.AssemblyName, constantStrings.MessageAction.JsonToObjectInitializer, message.extensionID, message.classCode, message.json);
+                        const result = await DotNet.invokeMethodAsync(constantStrings.AssemblyName, constantStrings.MessageAction.JsonToObjectInitializer, message.extensionID, message.namespace, message.className, message.classCode, message.json);
                         await navigator.clipboard.writeText(result);
                         alertMessage = "Object Initializer copied to clipboard";
                     } else {

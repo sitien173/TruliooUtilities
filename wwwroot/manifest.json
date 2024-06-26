@@ -56,7 +56,8 @@
         "content/*",
         "wwwroot/*",
         "app.js",
-        "common.mjs"
+        "common.mjs",
+        "TruliooExtension.styles.css"
       ],
       "matches": [
         "*://*/*"

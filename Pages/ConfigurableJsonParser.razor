@@ -1,0 +1,195 @@
+﻿@page "/configurable-json-parser"
+@inherits BasePage
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Configurable JSON Parser</h5>
+        <p class="card-text">This is where you can configure the JSON parser settings for the application.</p>
+    </div>
+    <div class="card-body">
+        <EditForm Model="_model" OnSubmit="HandleSubmit">
+            <DataAnnotationsValidator/>
+
+            <div class="mb-3">
+                <label class="form-label">Languages</label>
+                <Select SelectOptions="Entities.ConfigurableJsonParser.GetSupportedLanguages()" SelectedValue="@_model.Lang" Callback="(val) => { _model.Lang = val; }"></Select>
+                <InputText @bind-Value="_model.Lang" hidden />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">C# version</label>
+                <Select SelectOptions="Entities.ConfigurableJsonParser.GetSupportedCSharpVersion()" SelectedValue="@_model.Version.ToString()" Callback="val => { _model.Version = int.Parse(val); }"></Select>
+                <InputNumber @bind-Value="_model.Version" hidden />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Serialization framework</label>
+                <Select SelectOptions="Entities.ConfigurableJsonParser.GetSupportedSerializationTypes()" SelectedValue="@_model.SerializationType" Callback="val => { _model.SerializationType = val; }"></Select>
+                <InputText @bind-Value="_model.SerializationType" hidden />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Generated namespace</label>
+                <InputText @bind-Value="_model.GenerateNamespace" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Root class</label>
+                <InputText @bind-Value="_model.RootClass" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Use [] or List</label>
+                <Select SelectOptions="Entities.ConfigurableJsonParser.GetSupportedCollectionType()" SelectedValue="@_model.CollectionType" Callback="val => { _model.CollectionType = val; }"></Select>
+                <InputText @bind-Value="_model.CollectionType" hidden />
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Output features</label>
+                <Select SelectOptions="Entities.ConfigurableJsonParser.GetSupportedOutputFeatures()" SelectedValue="@_model.OutputFeature" Callback="val => { _model.OutputFeature = val; }"></Select>
+                <InputText @bind-Value="_model.OutputFeature" hidden />
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Property density</label>
+                <Select SelectOptions="Entities.ConfigurableJsonParser.GetSupportedPropertyDensity()" SelectedValue="@_model.PropertyDensity" Callback="val => { _model.PropertyDensity = val; }"></Select>
+                <InputText @bind-Value="_model.PropertyDensity" hidden />
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Type to use for numbers</label>
+                <Select SelectOptions="Entities.ConfigurableJsonParser.GetSupportedTypeUseForNumerics()" SelectedValue="@_model.TypeUseForNumerics" Callback="val => { _model.TypeUseForNumerics = val; }"></Select>
+                <InputText @bind-Value="_model.TypeUseForNumerics" hidden />
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Type to use for "any"</label>
+                <Select SelectOptions="Entities.ConfigurableJsonParser.GetSupportedTypeUseForAny()" SelectedValue="@_model.TypeUseForAny" Callback="val => { _model.TypeUseForAny = val; }"></Select>
+                <InputText @bind-Value="_model.TypeUseForAny" hidden />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">
+                    <InputCheckbox @bind-Value="_model.DetectUuID"/> Detect UUIDs
+                    <span class="description">Detect UUIDs like '123e4567-e89b-12d3-a456-426655440000' (partial support).</span>
+                </label>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">
+                    <InputCheckbox @bind-Value="_model.DetectBooleans"/> Detect booleans in strings
+                    <span class="description">Automatically convert stringifies booleans to booleans.For example, "true" is converted to true.</span>
+                </label>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">
+                    <InputCheckbox @bind-Value="_model.DetectDates"/> Detect dates & times
+                    <span class="description">Automatically convert strings to dates & times. For example, "2021-01-01" is converted to a date object.</span>
+                </label>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">
+                    <InputCheckbox @bind-Value="_model.DetectEnums"/> Detect enums
+                    <span class="description">Automatically convert strings to enums. For example, "red" is converted to Color.Red. Set output feature to "complete" to generate the enum class.</span>
+                </label>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">
+                    <InputCheckbox @bind-Value="_model.DetectNumbers"/> Detect integers in strings
+                    <span class="description">Automatically convert strings to numbers. For example, "123" is converted to 123. Set output feature to "complete" to generate the parser class.</span>
+                </label>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">
+                    <InputCheckbox @bind-Value="_model.DetectMaps"/> Detect maps
+                    <span class="description">Automatically convert objects to maps. For example, {"a": 1} is converted to a map with a key "a" and a value 1.</span>
+                </label>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">
+                    <InputCheckbox @bind-Value="_model.IgnoreReferences"/> Don't treat $ref as a reference in JSON
+                    <span class="description">Don't treat $ref as a reference in JSON. Instead, treat it as a regular property.</span>
+                </label>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">
+                    <InputCheckbox @bind-Value="_model.MergeSimilarClasses"/> Merge similar classes
+                    <span class="description">Merge similar classes into one class. For example, if two classes have the same properties, they will be merged into one class.</span>
+                </label>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">
+                    <InputCheckbox @bind-Value="_model.GenerateVirtualProperties"/> Generate virtual properties
+                    <span class="description">Generate virtual properties for all properties in the generated classes.</span>
+                </label>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">
+                    <InputCheckbox @bind-Value="_model.RequireSerializableAttribute"/> Fail if required properties are missing
+                    <span class="description">Fail if required properties are missing in the JSON.</span>
+                </label>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">
+                    <InputCheckbox @bind-Value="_model.KeepOriginalPropertyCasing"/> Keep original field name generate
+                    <span class="description">Keep the original field name generated by the parser.</span>
+                </label>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">
+                    <InputCheckbox @bind-Value="_model.MakeAllPropertiesOptional"/> Make all properties optional
+                    <span class="description">Make all properties optional in the generated classes.</span>
+                </label>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">
+                    <InputCheckbox @bind-Value="_model.AlphabetizeProperties"/> Alphabetize properties
+                    <span class="description">Alphabetize properties in the generated classes.</span>
+                </label>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">
+                    <InputCheckbox @bind-Value="_model.StandardizeIdProperty"/> Standardize ID property
+                    <span class="description">Standardize the ID property in the generated classes. For example, "id" is converted to "ID".</span>
+                </label>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">
+                    <InputCheckbox @bind-Value="_model.SetDefaultEmptyCollection"/> Default empty collection
+                    <span class="description">Set default empty collection for properties that are collections.</span>
+                </label>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">
+                    <InputCheckbox @bind-Value="_model.SetDefaultStringEmpty"/> Default string empty
+                    <span class="description">Set default string empty for properties that are strings.</span>
+                </label>
+            </div>
+            
+            <div class="mb-3 text-center">
+                @if (_isLoading)
+                {
+                    <button class="btn btn-primary disabled" type="submit"><span class="spinner"></span> Loading...</button>
+                }
+                else
+                {
+                    <button class="btn btn-primary" type="submit">Save</button>
+                }
+            </div>
+        </EditForm>
+    </div>
+</div>

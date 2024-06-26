@@ -19,5 +19,5 @@ public class Tables
 {
     public string CspManager { get; set; }
     public string CustomFieldGroup { get; set; }
-    public string Temp { get; set; }
+    public string Config { get; set; }
 }

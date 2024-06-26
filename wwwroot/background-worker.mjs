@@ -7,7 +7,6 @@ const {
     jsonInputForTargetLanguage} = require("quicktype-core");
 const localforage = require('localforage');
 self.localforage = localforage;
-
 browser.runtime.onStartup.addListener(async function () {
     const rules = await getAll(constantStrings.Tables.CSPManager);
     const keywords = rules.map(x => x.url);
@@ -159,29 +158,44 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 );
 
+async function quicktypeJSON(jsonConfig, jsonString, isComplexFeature = false) {
+    const jsonInput = jsonInputForTargetLanguage(jsonConfig.lang);
 
-async function quicktypeJSON(targetLanguage, typeName, jsonString) {
-    const jsonInput = jsonInputForTargetLanguage(targetLanguage);
-    
     await jsonInput.addSource({
-        name: typeName,
+        name: jsonConfig.rootClass,
         samples: [jsonString]
     });
 
     const inputData = new InputData();
     inputData.addInput(jsonInput);
-    
+
+    // wwwroot/node_modules/quicktype-core/dist/language/CSharp/language.js
     return await quicktype({
         inputData,
-        lang: targetLanguage,
-        inferUuids: false,
-        inferDateTimes: false,
-        inferIntegerStrings: false,
-        combineClasses: true,
+        lang: jsonConfig.lang,
+        alphabetizeProperties: jsonConfig.alphabetizeProperties,
+        allPropertiesOptional: jsonConfig.makeAllPropertiesOptional,
+        inferBooleanStrings: jsonConfig.detectBooleans,
+        inferUuids: jsonConfig.detectUuID,
+        inferEnums: jsonConfig.detectEnums,
+        inferDateTimes: jsonConfig.detectDates,
+        inferIntegerStrings: jsonConfig.detectNumbers,
+        ignoreJsonRefs: jsonConfig.ignoreJsonRefs,
+        inferMaps: jsonConfig.detectMaps,
+        fixedTopLevels: true,
+        combineClasses: jsonConfig.mergeSimilarClasses,
         rendererOptions: {
-            'features': 'attributes-only',
-            'version': '6',
-            'namespace': constantStrings.AssemblyName
+            'features': isComplexFeature ? 'complete' : jsonConfig.outputFeature,
+            'csharp-version': jsonConfig.version,
+            'namespace': jsonConfig.generateNamespace,
+            'framework': jsonConfig.serializationType,
+            'density': jsonConfig.propertyDensity,
+            'any-type': jsonConfig.typeUseForAny,
+            'number-type': jsonConfig.typeUseForNumerics,
+            'check-required': jsonConfig.requireSerializableAttribute,
+            'keep-property-name': jsonConfig.keepOriginalPropertyCasing,
+            'virtual': jsonConfig.generateVirtualProperties,
+            'array-type': jsonConfig.collectionType
         }
     });
 }
@@ -212,22 +226,38 @@ async function getCustomFields() {
 
 
 const getConfig = async () => {
-    return await getItem(constantStrings.Tables.Temp, 'GlobalConfiguration');
+    return await getItem(constantStrings.Tables.Config, 'GlobalConfiguration');
 }
 
 async function handleJsonConversion(actionType, tabId) {
     const selectedText = await browser.tabs.sendMessage(tabId, {action: constantStrings.MessageAction.GetSelectedText});
     try {
         const json = removeNBSP(selectedText);
-        const { lines: example } = await quicktypeJSON('csharp', 'Example', json);
+        const jsonConfig = await getItem(constantStrings.Tables.Config, 'ConfigurableJsonParser');
+        const { lines: example } = await quicktypeJSON(jsonConfig, json, actionType === constantStrings.MessageAction.JsonToObjectInitializer);
         let classCode = example.join("\n");
-        classCode = setDefaultValueProperties(classCode);
-        classCode = standardizeIdProperty(classCode);
+        
+        if(jsonConfig.standardizeIdProperty)
+        {
+            classCode = standardizeIdProperty(classCode);
+        }
+        
+        if(jsonConfig.setDefaultEmptyCollection)
+        {
+            classCode = setDefaultEmptyCollection(classCode);
+        }
+        
+        if(jsonConfig.setDefaultStringEmpty)
+        {
+            classCode = setDefaultStringEmpty(classCode);
+        }
 
         const message = {
             action: actionType,
             status: 'ok',
             classCode: classCode,
+            namespace: jsonConfig.generateNamespace,
+            className: jsonConfig.rootClass
         };
 
         if (actionType === constantStrings.MessageAction.JsonToObjectInitializer) {
@@ -246,16 +276,36 @@ function removeNBSP(str)
     return str.replace(/\u00A0/g, '');
 }
 
-function setDefaultValueProperties(csharpCodeClass)
+function setDefaultEmptyCollection(csharpCodeClass)
 {
     // array property with default value = Array.Empty<T>()
     csharpCodeClass = csharpCodeClass.replace(/(public\s+(\w+)\[]\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = Array.Empty<$2>();");
+    
+    // virtual array property with default value = Array.Empty<T>()
+    csharpCodeClass = csharpCodeClass.replace(/(public\s+virtual\s+(\w+)\[]\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = Array.Empty<$2>();");
+    
+    // list property with default value = new List<T>()
+    csharpCodeClass = csharpCodeClass.replace(/(public\s+List<(\w+)>\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = new List<$2>();");
+    
+    // virtual list property with default value = new List<T>()
+    csharpCodeClass = csharpCodeClass.replace(/(public\s+virtual\s+List<(\w+)>\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = new List<$2>();");
+    
+    // Dictionary property with default value = new Dictionary<TKey, TValue>()
+    csharpCodeClass = csharpCodeClass.replace(/(public\s+Dictionary<(\w+,\s*\w+)>\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = new Dictionary<$2>();");
+    
+    // virtual Dictionary property with default value = new Dictionary<TKey, TValue>()
+    csharpCodeClass = csharpCodeClass.replace(/(public\s+virtual\s+Dictionary<(\w+,\s*\w+)>\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = new Dictionary<$2>();");
 
+    return csharpCodeClass;
+}
+
+function setDefaultStringEmpty(csharpCodeClass)
+{
     // string property with default value = string.Empty
     csharpCodeClass = csharpCodeClass.replace(/(public\s+string\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = string.Empty;");
-
-    // Dictionary property with default value = new Dictionary<TKey, TValue>()
-    csharpCodeClass = csharpCodeClass.replace(/(public\s+Dictionary<\w+,\s*\w+>\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = new Dictionary<$2>();");
+    
+    // virtual string property with default value = string.Empty
+    csharpCodeClass = csharpCodeClass.replace(/(public\s+virtual\s+string\s+\w+\s+{\s+get;\s+set;\s+})/g, "$1 = string.Empty;");
 
     return csharpCodeClass;
 }
@@ -265,6 +315,12 @@ function standardizeIdProperty(csharpCodeClass) {
     csharpCodeClass = csharpCodeClass.replace(/public\s*(\w+[?|\s])\s*(id|\w+id|id\w+)\s*\{\s*get;\s*set;\s*}/gi, (match, p1, p2) => {
         return `public ${p1.trim()} ${p2.replace(/id/i, 'ID')} { get; set; }`;
     });
+    
+    // virtual property with ID
+    csharpCodeClass = csharpCodeClass.replace(/public\s*virtual\s*(\w+[?|\s])\s*(id|\w+id|id\w+)\s*\{\s*get;\s*set;\s*}/gi, (match, p1, p2) => {
+        return `public virtual ${p1.trim()} ${p2.replace(/id/i, 'ID')} { get; set; }`;
+    });
+    
     return csharpCodeClass;
 }
 

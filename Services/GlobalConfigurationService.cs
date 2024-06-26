@@ -1,26 +1,29 @@
 ﻿using TruliooExtension.Entities;
 
 namespace TruliooExtension.Services;
-public interface IGlobalConfigurationService
+
+using Common;
+
+public interface IGlobalConfigurationService : IRunner
 {
     Task<GlobalConfiguration?> GetAsync();
     Task SaveAsync(GlobalConfiguration model);
-    Task InitializeAsync();
 }
 public class GlobalConfigurationService(IStorageService storageService, IConfigurationProvider configurationProvider) : IGlobalConfigurationService
 {
+    private GlobalConfiguration? _globalConfiguration;
     public async Task<GlobalConfiguration?> GetAsync()
     {
-        var result = await storageService.GetAsync<string, GlobalConfiguration>((await configurationProvider.GetAppSettingsAsync()).Tables.Temp, nameof(GlobalConfiguration));
-        return result;
+        return _globalConfiguration ??= await storageService.GetAsync<string, GlobalConfiguration>((await configurationProvider.GetAppSettingsAsync()).Tables.Config, nameof(GlobalConfiguration));
     }
 
     public async Task SaveAsync(GlobalConfiguration model)
     {
-        await storageService.SetAsync((await configurationProvider.GetAppSettingsAsync()).Tables.Temp, nameof(GlobalConfiguration), model);
+        await storageService.SetAsync((await configurationProvider.GetAppSettingsAsync()).Tables.Config, nameof(GlobalConfiguration), model);
+        _globalConfiguration = model;
     }
 
-    public async Task InitializeAsync()
+    public async Task RunAsync()
     {
         var result = await GetAsync();
         if (result == null)

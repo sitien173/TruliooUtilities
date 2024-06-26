@@ -12,7 +12,7 @@
     Tables: {
         CSPManager: 'CSP',
         CustomFieldGroup: 'CustomFieldGroup',
-        Temp: 'Temp'
+        Config: 'Config'
     },
     Command: {
         FillInput: 'fill-input'

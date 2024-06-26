@@ -20,6 +20,7 @@ public class UpdateDatasourceService(
     IStorageService storageService)
     : IUpdateDatasourceService
 {
+    private bool? _canConnectToDatasource;
     public async Task<Datasource> GetAsync(int datasourceID)
     {
         var config = await globalConfigurationService.GetAsync();
@@ -36,18 +37,16 @@ public class UpdateDatasourceService(
             uriBuilder.Path += (await configurationProvider.GetAppSettingsAsync()).GetDatasourcePath + datasourceID;
 
             datasource = await httpClient.GetFromJsonAsync<Datasource>(uriBuilder.Uri);
-            await storageService.SetAsync((await configurationProvider.GetAppSettingsAsync()).Tables.Temp, (await configurationProvider.GetAppSettingsAsync()).LastFetchDatasourceId, datasourceID.ToString());
+            await storageService.SetAsync((await configurationProvider.GetAppSettingsAsync()).Tables.Config, (await configurationProvider.GetAppSettingsAsync()).LastFetchDatasourceId, datasourceID.ToString());
         }
-        catch (Exception e)
-        {
-            logger.LogWarning(e, "Failed to get datasource id {DatasourceID}", datasourceID);
-        }
+        catch { }
+        
         return datasource;
     }
 
     public async Task<Datasource> GetLastUpdatedDatasourceAsync()
     {
-        var datasourceID = await storageService.GetAsync<string, string>((await configurationProvider.GetAppSettingsAsync()).Tables.Temp,(await configurationProvider.GetAppSettingsAsync()).LastFetchDatasourceId);
+        var datasourceID = await storageService.GetAsync<string, string>((await configurationProvider.GetAppSettingsAsync()).Tables.Config,(await configurationProvider.GetAppSettingsAsync()).LastFetchDatasourceId);
         if(string.IsNullOrEmpty(datasourceID))
         {
             return null;
@@ -72,7 +71,7 @@ public class UpdateDatasourceService(
             uriBuilder.Path += (await configurationProvider.GetAppSettingsAsync()).UpdateDatasourcePath;
 
             await httpClient.PutAsJsonAsync(uriBuilder.Uri, datasource);
-            await storageService.SetAsync((await configurationProvider.GetAppSettingsAsync()).Tables.Temp, (await configurationProvider.GetAppSettingsAsync()).LastUpdatedDatasourceId, datasource.ID);
+            await storageService.SetAsync((await configurationProvider.GetAppSettingsAsync()).Tables.Config, (await configurationProvider.GetAppSettingsAsync()).LastUpdatedDatasourceId, datasource.ID);
         }
         catch (Exception e)
         {
@@ -83,6 +82,12 @@ public class UpdateDatasourceService(
 
     public async Task<bool> CanConnectAsync()
     {
-        return (await GetAsync(1)) != null;
+        if(_canConnectToDatasource.HasValue)
+        {
+            return _canConnectToDatasource.Value;
+        }
+        
+        _canConnectToDatasource = (await GetAsync(1)) != null; 
+        return _canConnectToDatasource.Value;
     }
 }

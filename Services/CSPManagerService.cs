@@ -14,8 +14,7 @@ public class CSPManagerService(IStorageService storageService, IConfigurationPro
 {
     public async Task<CSP> GetAsync(int id)
     {
-        var csp = await storageService.GetAsync<int, CSP>((await configurationProvider.GetAppSettingsAsync()).Tables.CspManager, id);
-        return csp ?? new CSP();
+        return await storageService.GetAsync<int, CSP>((await configurationProvider.GetAppSettingsAsync()).Tables.CspManager, id);
     }
 
     public async Task<List<CSP>> GetAllAsync()

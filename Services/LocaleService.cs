@@ -7,7 +7,7 @@ public interface ILocaleService
 
 public class LocaleService : ILocaleService
 {
-    private static readonly IReadOnlyDictionary<string, string> Locales = new Dictionary<string, string>
+    private readonly IReadOnlyDictionary<string, string> _locales = new Dictionary<string, string>
     {
         { "af_ZA", "Afrikaans" },
         { "ar", "Arabic" },
@@ -63,6 +63,6 @@ public class LocaleService : ILocaleService
 
     public Task<IReadOnlyDictionary<string, string>> GetLocalesAsync()
     {
-        return Task.FromResult(Locales);
+        return Task.FromResult(_locales);
     }
 }

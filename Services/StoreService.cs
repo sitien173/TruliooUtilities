@@ -4,7 +4,7 @@ namespace TruliooExtension.Services;
 
 public interface IStorageService
 {
-    Task<TValue?> GetAsync<TKey, TValue>(string instanceName, TKey key);
+    Task<TValue?> GetAsync<TKey, TValue>(string instanceName, TKey key, TValue fallbackValue = default(TValue));
     Task SetAsync<TKey, TValue>(string instanceName, TKey key, TValue value);
     Task<List<T>> GetAllAsync<T>(string instanceName);
     Task<int> NextIdAsync(string instanceName);
@@ -25,11 +25,11 @@ public class StorageService(IJSRuntime jsRuntime) : IStorageService, IAsyncDispo
         }
     }
     
-    public async Task<TValue?> GetAsync<TKey, TValue>(string instanceName, TKey key)
+    public async Task<TValue?> GetAsync<TKey, TValue>(string instanceName, TKey key, TValue fallbackValue = default(TValue))
     {
         await WaitForReferenceAsync();
         var result = await _module.Value.InvokeAsync<TValue>("getItem", instanceName, key);
-        return result;
+        return Equals(result, default(TValue)) ? fallbackValue : result;
     }
 
     public async Task SetAsync<TKey, TValue>(string instanceName, TKey key, TValue value)

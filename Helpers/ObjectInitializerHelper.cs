@@ -40,7 +40,7 @@ namespace TruliooExtension.Helpers
                 var property = properties[i];
                 object? propValue = property.GetValue(obj);
 
-                if (propValue == null)
+                if (propValue == null || (propValue is string str && string.IsNullOrEmpty(str)))
                     continue;
 
                 sb.Append($"{property.Name}=");

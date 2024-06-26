@@ -19,9 +19,8 @@ public partial class Popup : BasePage
         _appSettings = await ConfigurationProvider.GetAppSettingsAsync();
         NavigationManager.LocationChanged += async (s, e) =>
         {
-            await StorageService.SetAsync<string, string>(_appSettings.Tables.Temp,_key, NavigationManager.ToBaseRelativePath(NavigationManager.Uri));
+            await StorageService.SetAsync<string, string>(_appSettings.Tables.Config, _key, NavigationManager.ToBaseRelativePath(NavigationManager.Uri));
         };
-        
         await base.OnInitializedAsync();
     }
     
@@ -29,8 +28,9 @@ public partial class Popup : BasePage
     {
         if (firstRender)
         {
-            string? currentPage = await StorageService.GetAsync<string, string>(_appSettings.Tables.Temp,_key);
-            NavigationManager.NavigateTo(!string.IsNullOrEmpty(currentPage) ? currentPage : "/global-configuration");
+            _appSettings ??= await ConfigurationProvider.GetAppSettingsAsync();
+            var currentPage = await StorageService.GetAsync<string, string>(_appSettings.Tables.Config, _key, "/global-configuration");
+            NavigationManager.NavigateTo(currentPage!);
         }
         await base.OnAfterRenderAsync(firstRender);
     }

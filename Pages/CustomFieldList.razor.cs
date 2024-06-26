@@ -32,7 +32,7 @@ public partial class CustomFieldList : BasePage, IAsyncDisposable
     
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_accessorJsRef.IsValueCreated is false)
+        if (!_accessorJsRef.IsValueCreated)
         {
             _accessorJsRef = new Lazy<IJSObjectReference>(await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/CustomFieldList.razor.js"));
         }

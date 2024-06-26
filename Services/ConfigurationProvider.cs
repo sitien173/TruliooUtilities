@@ -10,7 +10,7 @@ public interface IConfigurationProvider
 public class ConfigurationProvider(IJSRuntime jsRuntime) : IConfigurationProvider, IAsyncDisposable
 {
     private Lazy<IJSObjectReference> _commonModule = new();
-    private static AppSettings _appSettings;
+    private AppSettings? _appSettings;
 
     private async Task WaitForReference()
     {
@@ -26,9 +26,7 @@ public class ConfigurationProvider(IJSRuntime jsRuntime) : IConfigurationProvide
             return _appSettings;
 
         await WaitForReference();
-        _appSettings = await _commonModule.Value.InvokeAsync<AppSettings>("appSettings");
-
-        return _appSettings;
+        return _appSettings ??= await _commonModule.Value.InvokeAsync<AppSettings>("appSettings");
     }
     
     public async ValueTask DisposeAsync()

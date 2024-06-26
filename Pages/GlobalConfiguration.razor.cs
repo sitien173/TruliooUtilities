@@ -19,7 +19,7 @@ public partial class GlobalConfiguration
     private bool IsLoading { get; set; }
     private Lazy<IJSObjectReference> _accessorJsRef = new ();
     private Entities.GlobalConfiguration _model = new ();
-    private IReadOnlyDictionary<string, string> _locales = new Dictionary<string, string>();
+    private IReadOnlyDictionary<string, string>? _locales = new Dictionary<string, string>();
     private bool _canConnectUpdateDataSource;
     protected override async Task OnInitializedAsync()
     {
@@ -48,7 +48,7 @@ public partial class GlobalConfiguration
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_accessorJsRef.IsValueCreated is false)
+        if (!_accessorJsRef.IsValueCreated)
         {
             _accessorJsRef = new Lazy<IJSObjectReference>(await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/GlobalConfiguration.razor.js"));
         }

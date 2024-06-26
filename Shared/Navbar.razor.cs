@@ -16,7 +16,7 @@ public partial class Navbar : ComponentBase, IAsyncDisposable
     
     private async Task WaitForReference()
     {
-        if (_accessorJsRef.IsValueCreated is false)
+        if (!_accessorJsRef.IsValueCreated)
         {
             _accessorJsRef = new Lazy<IJSObjectReference>(await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Shared/Navbar.razor.js"));
         }

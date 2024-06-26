@@ -13,6 +13,7 @@
     "localforage": "^1.10.0",
     "quicktype-core": "^23.0.168",
     "select2": "^4.1.0-rc.0",
-    "select2-bootstrap-theme": "^0.1.0-beta.10"
+    "select2-bootstrap-theme": "^0.1.0-beta.10",
+    "jquery-easy-loading": "^2.0.0-rc.2"
   }
 }

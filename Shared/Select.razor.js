@@ -1,4 +1,4 @@
-﻿export const  initSelect2 = (id, jsonData) => {
+﻿export const initSelect2 = (id, jsonData, dotnetHelper) => {
     const data = JSON.parse(jsonData);
     if(data.length === 0)
         return;
@@ -17,7 +17,7 @@
     
     $select.on('change', async function (e) {
         const val = e.target.value;
-        await DotNet.invokeMethodAsync('TruliooExtension', 'SelectChangeCallback', val);
+        await dotnetHelper.invokeMethodAsync('SelectChangeCallback', val);
     });
     
     // trigger the change event to load the initial value

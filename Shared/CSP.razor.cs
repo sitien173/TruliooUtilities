@@ -17,7 +17,7 @@ public partial class CSP : ComponentBase, IAsyncDisposable
 
     protected override async Task OnInitializedAsync()
     {
-        if (_accessorJsRef.IsValueCreated is false)
+        if (!_accessorJsRef.IsValueCreated)
         {
             _accessorJsRef = new Lazy<IJSObjectReference>(await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Shared/CSP.razor.js"));
         }

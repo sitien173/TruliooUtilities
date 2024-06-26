@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.JSInterop;
@@ -13,24 +12,16 @@ namespace TruliooExtension.JSInvokers;
 public static class JsonToObjectInitializer
 {
     private static readonly Dictionary<string, MetadataReference> _metadataReferenceCache = new();
-    private static readonly Dictionary<string, string> _namespaces = new Dictionary<string, string>
-    {
-        { "System", "System.Runtime" },
-        { "System.Collections.Generic", "System.Collections" },
-        { "System.Globalization", "System.Globalization" },
-        { "Newtonsoft.Json", "Newtonsoft.Json" },
-        { "Newtonsoft.Json.Converters", "Newtonsoft.Json" }
-    };
-    private static readonly string[] _additionalNamespaces = [ "System.Private.CoreLib", "System.Private.Uri" ];
+    private static readonly string[] _additionalAssemblies = [ "System.Private.CoreLib", "System.Private.Uri", "Newtonsoft.Json" ];
     private static readonly HttpClient _httpClient = new();
     
     [JSInvokable("JsonToObjectInitializer")]
-    public static async Task<string> JsonToObjectInitializerInvoker(string extensionID, string csharpClassCode, string json)
+    public static async Task<string> JsonToObjectInitializerInvoker(string extensionID, string @namespace, string className, string csharpClassCode, string json)
     {
         try
         {
             var scriptAssembly = await CompileToDllAssembly(extensionID, csharpClassCode, release: true);
-            Type type = scriptAssembly.GetType("TruliooExtension.Example")!;
+            Type type = scriptAssembly.GetType($"{@namespace}.{className}")!;
 
             object? obj = JsonConvert.DeserializeObject(json, type);
             return ObjectInitializerHelper.ObjectInitializer(obj);
@@ -82,15 +73,12 @@ public static class JsonToObjectInitializer
 
         SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sourceText, parseOptions);
 
-        MetadataReference[] references = await Task.WhenAll(syntaxTree
-            .GetCompilationUnitRoot()
-            .DescendantNodes()
-            .OfType<UsingDirectiveSyntax>()
-            .Select(x => _namespaces.TryGetValue(x.Name.ToFullString(), out var val) ? val : string.Empty)
-            .Concat(_additionalNamespaces)
-            .Where(x => !string.IsNullOrEmpty(x))
-            .Distinct()
-            .Select(assembly => GetAssemblyMetadataReference(assembly, extensionID)));
+        MetadataReference[] references = await Task.WhenAll(Assembly.GetEntryAssembly()!
+            .GetReferencedAssemblies()
+            .Where(x => !string.IsNullOrEmpty(x.Name) && x.Name.StartsWith("System"))
+            .Select(x => x.Name)
+            .Concat(_additionalAssemblies)
+            .Select(x => GetAssemblyMetadataReference(x!, extensionID)));
 
         CSharpCompilationOptions compilationOptions = new(
             OutputKind.DynamicallyLinkedLibrary,
