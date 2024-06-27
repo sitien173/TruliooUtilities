@@ -10,6 +10,26 @@ export const getItem = async (instanceName, key) => {
     return await instance.getItem(key);
 }
 
+export const exportDatabase = async (instanceName) => {
+    const instance = getInstances(instanceName);
+    const items = [];
+    await instance.iterate((value, key, _) => {
+        items.push({key, value});
+    });
+
+    return JSON.stringify(items);
+}
+
+export const importDatabase = async (jsonData) => {
+    const importData = JSON.parse(jsonData);
+    for (const [key, value] of Object.entries(importData)) {
+        const valueToImport = JSON.parse(value);
+        for (const item of valueToImport) {
+            await setItem(key, item.key, item.value);
+        }
+    }
+}
+
 export const getAll = async (instanceName) => {
     const instance = getInstances(instanceName);
     const items = [];

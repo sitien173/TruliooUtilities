@@ -9,7 +9,7 @@
     <div class="card-body">
         <EditForm Model="_model" OnSubmit="HandleSubmit">
             <DataAnnotationsValidator/>
-
+            
             <div class="mb-3">
                 <label class="form-label">Culture</label>
                 <Select Items="_locales" SelectedValue="@_model.CurrentCulture" Callback="(val) => { _model.CurrentCulture = val; }"></Select>

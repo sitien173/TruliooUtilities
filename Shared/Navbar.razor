@@ -17,6 +17,9 @@
                         <NavLink class="nav-link" href="update-datasource" Match="NavLinkMatch.All">Update Datasource</NavLink>
                     </li>
                 }
+                <li class="nav-item @GetActive("archivist", NavLinkMatch.All)">
+                    <NavLink class="nav-link" href="archivist" Match="NavLinkMatch.All">Backup & Restore</NavLink>
+                </li>
                 <li class="nav-item @GetActive("csp-manager", NavLinkMatch.All)">
                     <NavLink class="nav-link" href="csp-manager" Match="NavLinkMatch.All">CSP Manager</NavLink>
                 </li>

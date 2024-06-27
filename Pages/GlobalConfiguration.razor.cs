@@ -6,6 +6,8 @@ using TruliooExtension.Services;
 
 namespace TruliooExtension.Pages;
 
+using Microsoft.AspNetCore.Components.Forms;
+
 public partial class GlobalConfiguration
     : BasePage, IAsyncDisposable
 {

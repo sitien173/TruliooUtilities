@@ -1,0 +1,21 @@
+﻿@page "/archivist"
+@inherits BasePage
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h5>Backup and restore the database.</h5>
+    </div>
+    <div class="panel-body">
+        <div class="mb-3">
+            <label class="form-label">Import</label>
+            <InputFile OnChange="e => { _file = e.File; }" class="form-control" accept=".json" />
+            <button class="btn btn-primary" @onclick="Import">Import</button>
+        </div>
+    </div>
+
+    <div class="panel-body">
+        <div class="mb-3">
+            <button class="btn btn-primary" @onclick="Export">Export</button>
+        </div>
+    </div>
+</div>

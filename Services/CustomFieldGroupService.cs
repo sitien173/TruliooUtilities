@@ -1,5 +1,4 @@
-﻿using AsyncAwaitBestPractices;
-using TruliooExtension.Entities;
+﻿using TruliooExtension.Entities;
 using TruliooExtension.JSInvokers;
 
 namespace TruliooExtension.Services;
@@ -11,7 +10,7 @@ public interface ICustomFieldGroupService
     Task RefreshAsync(string culture);
 }
 
-public class CustomFieldGroupService(IStorageService storageService, IGlobalConfigurationService configService, ILocaleService localeService, IConfigurationProvider configurationProvider)
+public class CustomFieldGroupService(IStorageService storageService, IGlobalConfigurationService configService, IConfigurationProvider configurationProvider)
     : ICustomFieldGroupService
 {
     public async Task<CustomFieldGroup?> GetAsync(string culture)

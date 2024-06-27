@@ -11,6 +11,8 @@ public interface IStorageService
     Task<T?> FirstOrDefaultAsync<T>(string instanceName, Func<T, bool> predicate);
     Task DeleteAsync<TKey>(string instanceName, TKey key);
     Task<List<string>> GetAllKeysAsync(string instanceName);
+    Task<string> ExportDatabase(string instanceName);
+    Task ImportDatabase(string jsonData);
 }
 
 public class StorageService(IJSRuntime jsRuntime) : IStorageService, IAsyncDisposable
@@ -70,6 +72,17 @@ public class StorageService(IJSRuntime jsRuntime) : IStorageService, IAsyncDispo
         await WaitForReferenceAsync();
         var keys = await _module.Value.InvokeAsync<List<string>>("getKeys", instanceName);
         return keys;
+    }
+    public async Task<string> ExportDatabase(string instanceName)
+    {
+        await WaitForReferenceAsync();
+        var result = await _module.Value.InvokeAsync<string>("exportDatabase", instanceName);
+        return result;
+    }
+    public async Task ImportDatabase(string jsonData)
+    {
+        await WaitForReferenceAsync();
+        await _module.Value.InvokeVoidAsync("importDatabase", jsonData);
     }
 
     public async ValueTask DisposeAsync()
