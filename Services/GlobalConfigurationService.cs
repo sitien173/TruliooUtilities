@@ -6,13 +6,13 @@ using Common;
 
 public interface IGlobalConfigurationService : IRunner
 {
-    Task<GlobalConfiguration?> GetAsync();
+    Task<GlobalConfiguration> GetAsync();
     Task SaveAsync(GlobalConfiguration model);
 }
 public class GlobalConfigurationService(IStorageService storageService, IConfigurationProvider configurationProvider) : IGlobalConfigurationService
 {
     private GlobalConfiguration? _globalConfiguration;
-    public async Task<GlobalConfiguration?> GetAsync()
+    public async Task<GlobalConfiguration> GetAsync()
     {
         return _globalConfiguration ??= await storageService.GetAsync<string, GlobalConfiguration>((await configurationProvider.GetAppSettingsAsync()).Tables.Config, nameof(GlobalConfiguration));
     }

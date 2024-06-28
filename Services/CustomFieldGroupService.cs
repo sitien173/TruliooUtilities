@@ -43,7 +43,7 @@ public class CustomFieldGroupService(IStorageService storageService, IGlobalConf
         };
         
         var globalConfiguration = await configService.GetAsync();
-        customFieldGroup.CustomFields = RefreshCustomFields.GetCustomFields(customFieldGroup, customFieldGroupGlobal, globalConfiguration!);
+        customFieldGroup.CustomFields = RefreshCustomFields.GetCustomFields(customFieldGroup, customFieldGroupGlobal, globalConfiguration, false);
         await SaveAsync(customFieldGroup);
     }
 }

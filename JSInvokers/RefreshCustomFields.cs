@@ -1,14 +1,13 @@
 ﻿using Microsoft.JSInterop;
 using TruliooExtension.Common;
 using TruliooExtension.Entities;
-using ConfigurationProvider = TruliooExtension.Services.ConfigurationProvider;
 
 namespace TruliooExtension.JSInvokers;
 
 public static class RefreshCustomFields
 {
     [JSInvokable("RefreshCustomFields")]
-    public static List<CustomField> GetCustomFields(CustomFieldGroup customFieldGroup, CustomFieldGroup customFieldGroupGlobal, GlobalConfiguration globalConfiguration)
+    public static List<CustomField> GetCustomFields(CustomFieldGroup customFieldGroup, CustomFieldGroup customFieldGroupGlobal, GlobalConfiguration globalConfiguration, bool merge = true)
     {
         var customFields = new List<CustomField>();
 
@@ -20,10 +19,17 @@ public static class RefreshCustomFields
             if (string.IsNullOrEmpty(val))
                 continue;
 
-            var customField = customFieldGroup.CustomFields
-                .Concat(customFieldGroupGlobal.CustomFields)
-                .LastOrDefault(x => x.IsCustomize && x.DataField == property.Name);
-
+            CustomField? customField;
+            if (merge)
+            {
+                customField = customFieldGroup.CustomFields
+                    .Concat(customFieldGroupGlobal.CustomFields)
+                    .LastOrDefault(x => x.IsCustomize && x.DataField == property.Name);
+            }
+            else
+            {
+                customField = customFieldGroup.CustomFields.LastOrDefault(x => x.IsCustomize && x.DataField == property.Name);
+            }
 
             var match = customField?.Match ?? globalConfiguration.MatchTemplate;
             match = string.Format(match, property.Name);

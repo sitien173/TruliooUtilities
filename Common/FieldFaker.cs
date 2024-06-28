@@ -1,115 +1,15 @@
 ﻿using System.Reflection;
-using Bogus;
 using Fare;
 using TruliooExtension.Entities;
 
 namespace TruliooExtension.Common;
 
-public sealed class FieldFaker : Faker<FieldFaker>
-{
-    public FieldFaker() : base()
-    { }
-    
-    private FieldFaker(string locale) : base(locale)
-    {
-        // Name fields
-        RuleFor(o => o.FirstName, f => f.Name.FirstName());
-        RuleFor(o => o.MiddleName, f => f.Name.Random.Words(1));
-        RuleFor(o => o.LastName, f => f.Name.LastName());
-        RuleFor(o => o.FullName, f => f.Name.FullName());
-        RuleFor(o => o.FirstInitial, f => f.Name.FirstName()[0].ToString());
-        RuleFor(o => o.Prefix, f => f.Name.Prefix());
-        RuleFor(o => o.Gender, f => f.PickRandom("M", "F"));
-        RuleFor(o => o.Surname, f => f.Name.LastName());
-        RuleFor(o => o.GivenNames, f => f.Name.FirstName());
-        RuleFor(o => o.MiddleInitial, f => f.Name.FirstName()[0].ToString());
-        RuleFor(o => o.FirstSurname, f => f.Name.LastName());
-        RuleFor(o => o.SecondSurname, f => f.Name.LastName());
-        RuleFor(o => o.NameOnCard, f => f.Name.FullName());
-        RuleFor(o => o.PassportFullName, f => f.Name.FullName());
-        RuleFor(o => o.certFamilyName, f => f.Name.LastName());
-        RuleFor(o => o.certGivenNames, f => f.Name.FullName());
-        RuleFor(o => o.mdFullName, f => f.Name.FullName());
-        RuleFor(o => o.imFamilyName, f => f.Name.LastName());
-        RuleFor(o => o.imGivenName, f => f.Name.FirstName());
-        
-        // Address fields
-        RuleFor(o => o.Address1, f => f.Address.StreetAddress());
-        RuleFor(o => o.UnitNumber, f => f.Address.BuildingNumber());
-        RuleFor(o => o.StreetNumber, f => f.Address.BuildingNumber());
-        RuleFor(o => o.StreetName, f => f.Address.StreetName());
-        RuleFor(o => o.StreetType, f => f.Address.StreetSuffix());
-        RuleFor(o => o.Suburb, f => f.Address.City());
-        RuleFor(o => o.State, f => f.Address.State());
-        RuleFor(o => o.PostalCode, f => f.Address.ZipCode());
-        RuleFor(o => o.Address2, f => f.Address.StreetAddress());
-        RuleFor(o => o.ProvinceCode, f => f.Address.StateAbbr());
-        RuleFor(o => o.City, f => f.Address.City());
-        RuleFor(o => o.HouseNumber, f => f.Address.BuildingNumber());
-        RuleFor(o => o.BuildingNumber, f => f.Address.BuildingNumber());
-        RuleFor(o => o.BuildingName, f => f.Address.StreetName());
-        RuleFor(o => o.District, f => f.Address.City());
-        RuleFor(o => o.CivicNumber, f => f.Address.BuildingNumber());
-        RuleFor(o => o.Province, f => f.Address.State());
-        RuleFor(o => o.County, f => f.Address.County());
-        RuleFor(o => o.FloorNumber, f => f.Random.Number().ToString());
-        RuleFor(o => o.Prefecture, f => f.Address.State());
-        RuleFor(o => o.Aza, f => f.Address.StreetName());
-        RuleFor(o => o.AreaNumbers, f => f.Address.Random.Number(32000).ToString());
-        RuleFor(o => o.Suburb, f => f.Address.City());
-        RuleFor(o => o.Municipality, f => f.Address.City());
-        RuleFor(o => o.HouseExtension, f => "A");
-        RuleFor(o => o.StateProvince, f => f.Address.State());
-        RuleFor(o => o.DependentStreetName, f => f.Address.StreetName());
-        RuleFor(o => o.DependentStreetType, f => f.Address.StreetSuffix());
-        RuleFor(o => o.Street1, f => f.Address.StreetName());
-        RuleFor(o => o.StreetNumber, f => f.Address.BuildingNumber());
-        
-        // Phone fields
-        RuleFor(o => o.Telephone, f => f.Phone.PhoneNumber());
-        RuleFor(o => o.Telephone2, f => f.Phone.PhoneNumber());
-        RuleFor(o => o.HomeTelephoneNumber, f => f.Phone.PhoneNumber());
-        RuleFor(o => o.WorkTelephoneNumber, f => f.Phone.PhoneNumber());
-        RuleFor(o => o.CellNumber, f => f.Phone.PhoneNumber());
-        RuleFor(o => o.WorkTelephone, f => f.Phone.PhoneNumber());
-        RuleFor(o => o.Phone, f => f.Phone.PhoneNumber());
-        
-        // Email fields
-        RuleFor(o => o.EmailAddress, f => f.Internet.Email());
-        RuleFor(o => o.Email, f => f.Internet.Email());
-        
-        // Date of birth fields
-        RuleFor(o => o.DayOfBirth, f => f.Date.Past(20).Day.ToString());
-        RuleFor(o => o.MonthOfBirth, f => f.Date.Past(20).Month.ToString());
-        RuleFor(o => o.YearOfBirth, f => f.Date.Past(20).Year.ToString());
-        
-        // ID fields
-        RuleFor(o => o.NationalIDNumber, f => string.Join("", f.Random.Digits(11)));
-        RuleFor(o => o.TaxIDNumber, f => string.Join("", f.Random.Digits(11)));
-        RuleFor(o => o.SocialInsuranceNumber, f => string.Join("", f.Random.Digits(11)));
-        RuleFor(o => o.PersonalIdentityCode, f => string.Join("", f.Random.Digits(11)));
-        RuleFor(o => o.InseeNumber, f => string.Join("", f.Random.Digits(11)));
-        RuleFor(o => o.HongKongIDNumber, f => string.Join("", f.Random.Digits(11)));
-        RuleFor(o => o.PersonalPublicServiceNumber, f => string.Join("", f.Random.Digits(11)));
-        RuleFor(o => o.CodiceFiscale, f => string.Join("", f.Random.Digits(16)));
-        RuleFor(o => o.CURPIDNumber, f => string.Join("", f.Random.Digits(11)));
-        RuleFor(o => o.NRICNumber, f => string.Join("", f.Random.Digits(11)));
-        RuleFor(o => o.PinNumber, f => string.Join("", f.Random.Digits(11)));
-        RuleFor(o => o.SgNRICNumber, f => string.Join("", f.Random.Digits(11)));
-        RuleFor(o => o.SocialSecurityNumber, f => string.Join("", f.Random.Digits(11)));
-        RuleFor(o => o.PassportNumber, f => string.Join("", f.Random.Digits(11)));
-        
-        // Other fields
-        // ....
-        
-        // KYB
-        RuleFor(o => o.BusinessName, f => f.Company.CompanyName());
-        RuleFor(o => o.BusinessRegistrationNumber, f => f.Random.AlphaNumeric(10));
-        RuleFor(o => o.DUNSNumber, f => f.Random.AlphaNumeric(9));
-        RuleFor(o => o.TradestyleName, f => f.Company.CompanyName());
-        RuleFor(o => o.JurisdictionOfIncorporation, f => f.Address.State());
-    }
+using AutoBogus;
+using AutoBogus.Conventions;
+using AutoBogus.FakeItEasy;
 
+public sealed class FieldFaker
+{
     public static List<string> AllFieldName()
     {
         return typeof(FieldFaker).GetProperties(BindingFlags.Public | BindingFlags.Instance)
@@ -119,33 +19,111 @@ public sealed class FieldFaker : Faker<FieldFaker>
     
     public static FieldFaker GenerateWithCustomFieldGroup(CustomFieldGroup customFieldGroupGlobal, CustomFieldGroup customFieldGroup)
     {
-        var faker = new FieldFaker(customFieldGroup.Culture);
+        var faker = new AutoFaker<FieldFaker>()
+            .Configure(opt =>
+            {
+                opt.WithLocale(customFieldGroup.Culture)
+                    .WithBinder<FakeItEasyBinder>()
+                    .WithConventions();
+            })
+            // Name fields
+            .RuleFor(o => o.Name, f => f.Name.FullName())
+            .RuleFor(o => o.FirstName, f => f.Name.FirstName())
+            .RuleFor(o => o.MiddleName, f => f.Name.Random.Words(1))
+            .RuleFor(o => o.LastName, f => f.Name.LastName())
+            .RuleFor(o => o.FullName, f => f.Name.FullName())
+            .RuleFor(o => o.FirstInitial, f => f.Name.FirstName()[0].ToString())
+            .RuleFor(o => o.Prefix, f => f.Name.Prefix())
+            .RuleFor(o => o.Gender, f => f.PickRandom("M", "F"))
+            .RuleFor(o => o.Surname, f => f.Name.LastName())
+            .RuleFor(o => o.GivenNames, f => f.Name.FirstName())
+            .RuleFor(o => o.MiddleInitial, f => f.Name.FirstName()[0].ToString())
+            .RuleFor(o => o.FirstSurname, f => f.Name.LastName())
+            .RuleFor(o => o.SecondSurname, f => f.Name.LastName())
+            .RuleFor(o => o.NameOnCard, f => f.Name.FullName())
+            .RuleFor(o => o.PassportFullName, f => f.Name.FullName())
+            .RuleFor(o => o.certFamilyName, f => f.Name.LastName())
+            .RuleFor(o => o.certGivenNames, f => f.Name.FullName())
+            .RuleFor(o => o.mdFullName, f => f.Name.FullName())
+            .RuleFor(o => o.imFamilyName, f => f.Name.LastName())
+            .RuleFor(o => o.imGivenName, f => f.Name.FirstName())
+
+            // Address fields
+            .RuleFor(o => o.Address1, f => f.Address.StreetAddress())
+            .RuleFor(o => o.UnitNumber, f => f.Address.BuildingNumber())
+            .RuleFor(o => o.StreetNumber, f => f.Address.BuildingNumber())
+            .RuleFor(o => o.StreetName, f => f.Address.StreetName())
+            .RuleFor(o => o.StreetType, f => f.Address.StreetSuffix())
+            .RuleFor(o => o.Suburb, f => f.Address.City())
+            .RuleFor(o => o.State, f => f.Address.State())
+            .RuleFor(o => o.PostalCode, f => f.Address.ZipCode())
+            .RuleFor(o => o.Address2, f => f.Address.StreetAddress())
+            .RuleFor(o => o.ProvinceCode, f => f.Address.StateAbbr())
+            .RuleFor(o => o.City, f => f.Address.City())
+            .RuleFor(o => o.HouseNumber, f => f.Address.BuildingNumber())
+            .RuleFor(o => o.BuildingNumber, f => f.Address.BuildingNumber())
+            .RuleFor(o => o.BuildingName, f => f.Address.StreetName())
+            .RuleFor(o => o.District, f => f.Address.City())
+            .RuleFor(o => o.CivicNumber, f => f.Address.BuildingNumber())
+            .RuleFor(o => o.Province, f => f.Address.State())
+            .RuleFor(o => o.County, f => f.Address.County())
+            .RuleFor(o => o.FloorNumber, f => f.Random.Number().ToString())
+            .RuleFor(o => o.Prefecture, f => f.Address.State())
+            .RuleFor(o => o.Aza, f => f.Address.StreetName())
+            .RuleFor(o => o.AreaNumbers, f => f.Address.Random.Number(32000).ToString())
+            .RuleFor(o => o.Suburb, f => f.Address.City())
+            .RuleFor(o => o.Municipality, f => f.Address.City())
+            .RuleFor(o => o.HouseExtension, f => "A")
+            .RuleFor(o => o.StateProvince, f => f.Address.State())
+            .RuleFor(o => o.DependentStreetName, f => f.Address.StreetName())
+            .RuleFor(o => o.DependentStreetType, f => f.Address.StreetSuffix())
+            .RuleFor(o => o.Street1, f => f.Address.StreetName())
+            .RuleFor(o => o.StreetNumber, f => f.Address.BuildingNumber())
+
+            // Phone fields
+            .RuleFor(o => o.Telephone, f => f.Phone.PhoneNumber())
+            .RuleFor(o => o.Telephone2, f => f.Phone.PhoneNumber())
+            .RuleFor(o => o.HomeTelephoneNumber, f => f.Phone.PhoneNumber())
+            .RuleFor(o => o.WorkTelephoneNumber, f => f.Phone.PhoneNumber())
+            .RuleFor(o => o.CellNumber, f => f.Phone.PhoneNumber())
+            .RuleFor(o => o.WorkTelephone, f => f.Phone.PhoneNumber())
+            .RuleFor(o => o.Phone, f => f.Phone.PhoneNumber())
+
+            // Email fields
+            .RuleFor(o => o.EmailAddress, f => f.Internet.Email())
+            .RuleFor(o => o.Email, f => f.Internet.Email())
+
+            // Date of birth fields
+            .RuleFor(o => o.DayOfBirth, f => f.Date.Past(20).Day.ToString())
+            .RuleFor(o => o.MonthOfBirth, f => f.Date.Past(20).Month.ToString())
+            .RuleFor(o => o.YearOfBirth, f => f.Date.Past(20).Year.ToString())
+
+            // ID fields
+            .RuleFor(o => o.NationalIDNumber, f => string.Join("", f.Random.Digits(11)))
+            .RuleFor(o => o.TaxIDNumber, f => string.Join("", f.Random.Digits(11)))
+            .RuleFor(o => o.SocialInsuranceNumber, f => string.Join("", f.Random.Digits(11)))
+            .RuleFor(o => o.PersonalIdentityCode, f => string.Join("", f.Random.Digits(11)))
+            .RuleFor(o => o.InseeNumber, f => string.Join("", f.Random.Digits(11)))
+            .RuleFor(o => o.HongKongIDNumber, f => string.Join("", f.Random.Digits(11)))
+            .RuleFor(o => o.PersonalPublicServiceNumber, f => string.Join("", f.Random.Digits(11)))
+            .RuleFor(o => o.CodiceFiscale, f => string.Join("", f.Random.Digits(16)))
+            .RuleFor(o => o.CURPIDNumber, f => string.Join("", f.Random.Digits(11)))
+            .RuleFor(o => o.NRICNumber, f => string.Join("", f.Random.Digits(11)))
+            .RuleFor(o => o.PinNumber, f => string.Join("", f.Random.Digits(11)))
+            .RuleFor(o => o.SgNRICNumber, f => string.Join("", f.Random.Digits(11)))
+            .RuleFor(o => o.SocialSecurityNumber, f => string.Join("", f.Random.Digits(11)))
+            .RuleFor(o => o.PassportNumber, f => string.Join("", f.Random.Digits(11)))
+            // Other fields
+            // ....
+
+            // KYB
+            .RuleFor(o => o.BusinessName, f => f.Company.CompanyName())
+            .RuleFor(o => o.BusinessRegistrationNumber, f => f.Random.AlphaNumeric(10))
+            .RuleFor(o => o.DUNSNumber, f => f.Random.AlphaNumeric(9))
+            .RuleFor(o => o.TradestyleName, f => f.Company.CompanyName())
+            .RuleFor(o => o.JurisdictionOfIncorporation, f => f.Address.State());
+        
         var random = new Random();
-
-        MergeCustomFields(customFieldGroupGlobal, customFieldGroup);
-        ConfigureFakerRules(customFieldGroup, faker, random);
-
-        return faker.Generate();
-    }
-
-    private static void MergeCustomFields(CustomFieldGroup globalGroup, CustomFieldGroup localGroup)
-    {
-        foreach (var globalField in globalGroup.CustomFields)
-        {
-            int index = localGroup.CustomFields.FindIndex(x => x.DataField == globalField.DataField && !x.IsIgnore);
-            if (index >= 0)
-            {
-                localGroup.CustomFields[index] = globalField;
-            }
-            else
-            {
-                localGroup.CustomFields.Add(globalField);
-            }
-        }
-    }
-
-    private static void ConfigureFakerRules(CustomFieldGroup customFieldGroup, FieldFaker faker, Random random)
-    {
         foreach (var customField in customFieldGroup.CustomFields)
         {
             if (!string.IsNullOrEmpty(customField.StaticValue))
@@ -163,8 +141,29 @@ public sealed class FieldFaker : Faker<FieldFaker>
                 faker.Ignore(customField.DataField);
             }
         }
+        
+        foreach (var customField in customFieldGroupGlobal.CustomFields)
+        {
+            if (!string.IsNullOrEmpty(customField.StaticValue))
+            {
+                faker.RuleFor(customField.DataField, f => customField.StaticValue);
+            }
+
+            if (!string.IsNullOrEmpty(customField.Template))
+            {
+                faker.RuleFor(customField.DataField, f => new Xeger(customField.Template, random).Generate());
+            }
+
+            if (customField.IsIgnore)
+            {
+                faker.Ignore(customField.DataField);
+            }
+        }
+        
+        return faker.Generate();
     }
     
+    public string Name { get; set; }
     public string FirstName { get; set; }
     public string MiddleName { get; set; }
     public string LastName { get; set; }
