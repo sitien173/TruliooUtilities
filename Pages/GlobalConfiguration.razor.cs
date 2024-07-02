@@ -6,8 +6,6 @@ using TruliooExtension.Services;
 
 namespace TruliooExtension.Pages;
 
-using Microsoft.AspNetCore.Components.Forms;
-
 public partial class GlobalConfiguration
     : BasePage, IAsyncDisposable
 {
@@ -26,8 +24,8 @@ public partial class GlobalConfiguration
     protected override async Task OnInitializedAsync()
     {
         _model = await GlobalConfigurationService.GetAsync();
-        _canConnectUpdateDataSource = await UpdateDatasourceService.CanConnectAsync();
         _locales = await LocaleService.GetLocalesAsync();
+        _canConnectUpdateDataSource = await UpdateDatasourceService.CanConnectAsync();
 
         if (_model == null)
         {

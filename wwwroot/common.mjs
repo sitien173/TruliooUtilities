@@ -2,7 +2,7 @@
     DbName: 'TruliooExtApp',
     AssemblyName: 'TruliooExtension',
     DefaultCulture: 'en',
-    CustomFieldMatchTemplate: '[id$=\"{0}\" i], [name$=\"{0}\" i], [class$=\"{0}\" i]',
+    CustomFieldMatchTemplate: '[id$=\\"{0}\\" i], [name$=\\"{0}\\" i], [class$=\\"{0}\\" i]',
     AdminPortalEndpoint: 'https://localhost:44331/',
     CustomFieldGroupGlobalKey: 'global',
     LastFetchDatasourceID: 'LastFetchDatasourceID',

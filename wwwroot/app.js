@@ -26,7 +26,7 @@ export async function beforeStart(options, extensions, blazorBrowserExtension) {
  * Called after Blazor is ready to receive calls from JS.
  * @param {any} blazor The Blazor instance
  */
-export async function afterStarted(blazor) {
+export function afterStarted(blazor) {
 }
 
 function onMessageReceivedEvent(){
@@ -246,7 +246,8 @@ function fillElement(item){
     const matches = document.querySelectorAll(item.match);
     const validMatches = filterValidElements(matches);
     validMatches.forEach(control => {
-        if (!item.isIgnore) {
+        item.domain = item.domain.replace(/(^\w+:|^)\/\//, '');
+        if (!item.isIgnore && document.domain.includes(item.domain) || item.domain === 'all') {
             setValue(control, item.generateValue);
         }
     });

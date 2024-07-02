@@ -1,13 +1,30 @@
 ﻿using System.Reflection;
 using Fare;
 using TruliooExtension.Entities;
-
-namespace TruliooExtension.Common;
-
 using AutoBogus;
 using AutoBogus.Conventions;
 using AutoBogus.FakeItEasy;
+using Bogus;
+using Bogus.Extensions.Brazil;
+using Bogus.Extensions.Canada;
+using Bogus.Extensions.Denmark;
+using Bogus.Extensions.Finland;
+using Bogus.Extensions.Italy;
+using Bogus.Extensions.Norway;
+using Bogus.Extensions.Poland;
+using Bogus.Extensions.Portugal;
+using Bogus.Extensions.Romania;
+using Bogus.Extensions.Sweden;
+using Bogus.Extensions.UnitedKingdom;
+using Bogus.Extensions.UnitedStates;
 
+namespace TruliooExtension.Common;
+
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+
+[SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 public sealed class FieldFaker
 {
     public static List<string> AllFieldName()
@@ -16,7 +33,7 @@ public sealed class FieldFaker
             .Select(p => p.Name)
             .ToList();
     }
-    
+
     public static FieldFaker GenerateWithCustomFieldGroup(CustomFieldGroup customFieldGroupGlobal, CustomFieldGroup customFieldGroup)
     {
         var faker = new AutoFaker<FieldFaker>()
@@ -25,115 +42,366 @@ public sealed class FieldFaker
                 opt.WithLocale(customFieldGroup.Culture)
                     .WithBinder<FakeItEasyBinder>()
                     .WithConventions();
-            })
-            // Name fields
-            .RuleFor(o => o.Name, f => f.Name.FullName())
-            .RuleFor(o => o.FirstName, f => f.Name.FirstName())
-            .RuleFor(o => o.MiddleName, f => f.Name.Random.Words(1))
-            .RuleFor(o => o.LastName, f => f.Name.LastName())
-            .RuleFor(o => o.FullName, f => f.Name.FullName())
-            .RuleFor(o => o.FirstInitial, f => f.Name.FirstName()[0].ToString())
-            .RuleFor(o => o.Prefix, f => f.Name.Prefix())
-            .RuleFor(o => o.Gender, f => f.PickRandom("M", "F"))
-            .RuleFor(o => o.Surname, f => f.Name.LastName())
-            .RuleFor(o => o.GivenNames, f => f.Name.FirstName())
-            .RuleFor(o => o.MiddleInitial, f => f.Name.FirstName()[0].ToString())
-            .RuleFor(o => o.FirstSurname, f => f.Name.LastName())
-            .RuleFor(o => o.SecondSurname, f => f.Name.LastName())
-            .RuleFor(o => o.NameOnCard, f => f.Name.FullName())
-            .RuleFor(o => o.PassportFullName, f => f.Name.FullName())
-            .RuleFor(o => o.certFamilyName, f => f.Name.LastName())
-            .RuleFor(o => o.certGivenNames, f => f.Name.FullName())
-            .RuleFor(o => o.mdFullName, f => f.Name.FullName())
-            .RuleFor(o => o.imFamilyName, f => f.Name.LastName())
-            .RuleFor(o => o.imGivenName, f => f.Name.FirstName())
+            });
 
-            // Address fields
-            .RuleFor(o => o.Address1, f => f.Address.StreetAddress())
-            .RuleFor(o => o.UnitNumber, f => f.Address.BuildingNumber())
-            .RuleFor(o => o.StreetNumber, f => f.Address.BuildingNumber())
-            .RuleFor(o => o.StreetName, f => f.Address.StreetName())
-            .RuleFor(o => o.StreetType, f => f.Address.StreetSuffix())
-            .RuleFor(o => o.Suburb, f => f.Address.City())
-            .RuleFor(o => o.State, f => f.Address.State())
-            .RuleFor(o => o.PostalCode, f => f.Address.ZipCode())
-            .RuleFor(o => o.Address2, f => f.Address.StreetAddress())
-            .RuleFor(o => o.ProvinceCode, f => f.Address.StateAbbr())
-            .RuleFor(o => o.City, f => f.Address.City())
-            .RuleFor(o => o.HouseNumber, f => f.Address.BuildingNumber())
-            .RuleFor(o => o.BuildingNumber, f => f.Address.BuildingNumber())
-            .RuleFor(o => o.BuildingName, f => f.Address.StreetName())
-            .RuleFor(o => o.District, f => f.Address.City())
-            .RuleFor(o => o.CivicNumber, f => f.Address.BuildingNumber())
-            .RuleFor(o => o.Province, f => f.Address.State())
-            .RuleFor(o => o.County, f => f.Address.County())
-            .RuleFor(o => o.FloorNumber, f => f.Random.Number().ToString())
-            .RuleFor(o => o.Prefecture, f => f.Address.State())
-            .RuleFor(o => o.Aza, f => f.Address.StreetName())
-            .RuleFor(o => o.AreaNumbers, f => f.Address.Random.Number(32000).ToString())
-            .RuleFor(o => o.Suburb, f => f.Address.City())
-            .RuleFor(o => o.Municipality, f => f.Address.City())
-            .RuleFor(o => o.HouseExtension, f => "A")
-            .RuleFor(o => o.StateProvince, f => f.Address.State())
-            .RuleFor(o => o.DependentStreetName, f => f.Address.StreetName())
-            .RuleFor(o => o.DependentStreetType, f => f.Address.StreetSuffix())
-            .RuleFor(o => o.Street1, f => f.Address.StreetName())
-            .RuleFor(o => o.StreetNumber, f => f.Address.BuildingNumber())
+        ConfigureCredentialFields(faker);
+        ConfigureNameFields(faker);
+        ConfigureAddressFields(faker);
+        ConfigurePhoneFields(faker);
+        ConfigureEmailFields(faker);
+        ConfigureDateOfBirthFields(faker);
+        ConfigureIDFields(faker);
+        ConfigureKYBFields(faker);
 
-            // Phone fields
-            .RuleFor(o => o.Telephone, f => f.Phone.PhoneNumber())
-            .RuleFor(o => o.Telephone2, f => f.Phone.PhoneNumber())
-            .RuleFor(o => o.HomeTelephoneNumber, f => f.Phone.PhoneNumber())
-            .RuleFor(o => o.WorkTelephoneNumber, f => f.Phone.PhoneNumber())
-            .RuleFor(o => o.CellNumber, f => f.Phone.PhoneNumber())
-            .RuleFor(o => o.WorkTelephone, f => f.Phone.PhoneNumber())
-            .RuleFor(o => o.Phone, f => f.Phone.PhoneNumber())
-
-            // Email fields
-            .RuleFor(o => o.EmailAddress, f => f.Internet.Email())
-            .RuleFor(o => o.Email, f => f.Internet.Email())
-
-            // Date of birth fields
-            .RuleFor(o => o.DayOfBirth, f => f.Date.Past(20).Day.ToString())
-            .RuleFor(o => o.MonthOfBirth, f => f.Date.Past(20).Month.ToString())
-            .RuleFor(o => o.YearOfBirth, f => f.Date.Past(20).Year.ToString())
-
-            // ID fields
-            .RuleFor(o => o.NationalIDNumber, f => string.Join("", f.Random.Digits(11)))
-            .RuleFor(o => o.TaxIDNumber, f => string.Join("", f.Random.Digits(11)))
-            .RuleFor(o => o.SocialInsuranceNumber, f => string.Join("", f.Random.Digits(11)))
-            .RuleFor(o => o.PersonalIdentityCode, f => string.Join("", f.Random.Digits(11)))
-            .RuleFor(o => o.InseeNumber, f => string.Join("", f.Random.Digits(11)))
-            .RuleFor(o => o.HongKongIDNumber, f => string.Join("", f.Random.Digits(11)))
-            .RuleFor(o => o.PersonalPublicServiceNumber, f => string.Join("", f.Random.Digits(11)))
-            .RuleFor(o => o.CodiceFiscale, f => string.Join("", f.Random.Digits(16)))
-            .RuleFor(o => o.CURPIDNumber, f => string.Join("", f.Random.Digits(11)))
-            .RuleFor(o => o.NRICNumber, f => string.Join("", f.Random.Digits(11)))
-            .RuleFor(o => o.PinNumber, f => string.Join("", f.Random.Digits(11)))
-            .RuleFor(o => o.SgNRICNumber, f => string.Join("", f.Random.Digits(11)))
-            .RuleFor(o => o.SocialSecurityNumber, f => string.Join("", f.Random.Digits(11)))
-            .RuleFor(o => o.PassportNumber, f => string.Join("", f.Random.Digits(11)))
-            // Other fields
-            // ....
-
-            // KYB
-            .RuleFor(o => o.BusinessName, f => f.Company.CompanyName())
-            .RuleFor(o => o.BusinessRegistrationNumber, f => f.Random.AlphaNumeric(10))
-            .RuleFor(o => o.DUNSNumber, f => f.Random.AlphaNumeric(9))
-            .RuleFor(o => o.TradestyleName, f => f.Company.CompanyName())
-            .RuleFor(o => o.JurisdictionOfIncorporation, f => f.Address.State());
-        
         var random = new Random();
+        ConfigureCustomFields(faker, customFieldGroup, random);
+        ConfigureCustomFields(faker, customFieldGroupGlobal, random);
+
+        return faker
+            .FinishWith((f, ff) =>
+            {
+                ff.ConfirmPassword = ff.Password;
+                ff.RepeatPassword = ff.Password;
+            })
+            .FinishWith((f, ff) => ConfigureCultureSpecificFields(f, ff, customFieldGroup.Culture))
+            .Generate();
+    }
+    private static void ConfigureCredentialFields(AutoFaker<FieldFaker> faker)
+    {
+        faker.RuleFor(o => o.UserName, f => f.Internet.UserName())
+            .RuleFor(o => o.Password, f => f.Internet.Password())
+            .RuleFor(o => o.ConfirmPassword, f => f.Internet.Password())
+            .RuleFor(o => o.RepeatPassword, f => f.Internet.Password());
+    }
+
+    private static void ConfigureNameFields(AutoFaker<FieldFaker> faker)
+    {
+        var nameFields = new Dictionary<string, Func<Faker, string>>
+        {
+            {
+                nameof(FieldFaker.Name), f => f.Name.FullName()
+            },
+            {
+                nameof(FieldFaker.FirstName), f => f.Name.FirstName()
+            },
+            {
+                nameof(FieldFaker.MiddleName), f => f.Name.Random.Words(1)
+            },
+            {
+                nameof(FieldFaker.LastName), f => f.Name.LastName()
+            },
+            {
+                nameof(FieldFaker.FullName), f => f.Name.FullName()
+            },
+            {
+                nameof(FieldFaker.FirstInitial), f => f.Name.FirstName()[0].ToString()
+            },
+            {
+                nameof(FieldFaker.Prefix), f => f.Name.Prefix()
+            },
+            {
+                nameof(FieldFaker.Gender), f => f.PickRandom("M", "F")
+            },
+            {
+                nameof(FieldFaker.Surname), f => f.Name.LastName()
+            },
+            {
+                nameof(FieldFaker.GivenNames), f => f.Name.FirstName()
+            },
+            {
+                nameof(FieldFaker.MiddleInitial), f => f.Name.FirstName()[0].ToString()
+            },
+            {
+                nameof(FieldFaker.FirstSurname), f => f.Name.LastName()
+            },
+            {
+                nameof(FieldFaker.SecondSurname), f => f.Name.LastName()
+            },
+            {
+                nameof(FieldFaker.NameOnCard), f => f.Name.FullName()
+            },
+            {
+                nameof(FieldFaker.PassportFullName), f => f.Name.FullName()
+            },
+            {
+                nameof(FieldFaker.certFamilyName), f => f.Name.LastName()
+            },
+            {
+                nameof(FieldFaker.certGivenNames), f => f.Name.FullName()
+            },
+            {
+                nameof(FieldFaker.mdFullName), f => f.Name.FullName()
+            },
+            {
+                nameof(FieldFaker.imFamilyName), f => f.Name.LastName()
+            },
+            {
+                nameof(FieldFaker.imGivenName), f => f.Name.FirstName()
+            },
+        };
+
+        foreach (var field in nameFields)
+        {
+            faker.RuleFor(field.Key, field.Value);
+        }
+    }
+
+    private static void ConfigureAddressFields(AutoFaker<FieldFaker> faker)
+    {
+        var addressFields = new Dictionary<string, Func<Faker, string>>
+        {
+            {
+                nameof(FieldFaker.Address1), f => f.Address.FullAddress()
+            },
+            {
+                nameof(FieldFaker.UnitNumber), f => f.Address.BuildingNumber()
+            },
+            {
+                nameof(FieldFaker.StreetNumber), f => f.Address.BuildingNumber()
+            },
+            {
+                nameof(FieldFaker.StreetName), f => f.Address.StreetName()
+            },
+            {
+                nameof(FieldFaker.StreetType), f => f.Address.StreetSuffix()
+            },
+            {
+                nameof(FieldFaker.Suburb), f => f.Address.City()
+            },
+            {
+                nameof(FieldFaker.State), f => f.Address.State()
+            },
+            {
+                nameof(FieldFaker.PostalCode), f => f.Address.ZipCode()
+            },
+            {
+                nameof(FieldFaker.Address2), f => f.Address.SecondaryAddress()
+            },
+            {
+                nameof(FieldFaker.ProvinceCode), f => f.Address.StateAbbr()
+            },
+            {
+                nameof(FieldFaker.City), f => f.Address.City()
+            },
+            {
+                nameof(FieldFaker.HouseNumber), f => f.Address.BuildingNumber()
+            },
+            {
+                nameof(FieldFaker.BuildingNumber), f => f.Address.BuildingNumber()
+            },
+            {
+                nameof(FieldFaker.BuildingName), f => f.Address.Random.Word()
+            },
+            {
+                nameof(FieldFaker.District), f => f.Address.City()
+            },
+            {
+                nameof(FieldFaker.CivicNumber), f => f.Address.BuildingNumber()
+            },
+            {
+                nameof(FieldFaker.Province), f => f.Address.State()
+            },
+            {
+                nameof(FieldFaker.County), f => f.Address.County()
+            },
+            {
+                nameof(FieldFaker.FloorNumber), f => f.Random.Number().ToString()
+            },
+            {
+                nameof(FieldFaker.Prefecture), f => f.Address.State()
+            },
+            {
+                nameof(FieldFaker.Aza), f => f.Address.StreetName()
+            },
+            {
+                nameof(FieldFaker.AreaNumbers), f => f.Address.Random.Number(32000).ToString()
+            },
+            {
+                nameof(FieldFaker.Municipality), f => f.Address.City()
+            },
+            {
+                nameof(FieldFaker.HouseExtension), f => f.PickRandomParam("A", "B", "C", "D", "E", "F", "G")
+            },
+            {
+                nameof(FieldFaker.StateProvince), f => f.Address.State()
+            },
+            {
+                nameof(FieldFaker.DependentStreetName), f => f.Address.StreetName()
+            },
+            {
+                nameof(FieldFaker.DependentStreetType), f => f.Address.StreetSuffix()
+            },
+            {
+                nameof(FieldFaker.Street1), f => f.Address.StreetName()
+            }
+        };
+
+        foreach (var field in addressFields)
+        {
+            faker.RuleFor(field.Key, field.Value);
+        }
+    }
+
+    private static void ConfigurePhoneFields(AutoFaker<FieldFaker> faker)
+    {
+        var phoneFields = new Dictionary<string, Func<Faker, string>>
+        {
+            {
+                nameof(FieldFaker.Telephone), f => f.Phone.PhoneNumber()
+            },
+            {
+                nameof(FieldFaker.Telephone2), f => f.Phone.PhoneNumber()
+            },
+            {
+                nameof(FieldFaker.HomeTelephoneNumber), f => f.Phone.PhoneNumber()
+            },
+            {
+                nameof(FieldFaker.WorkTelephoneNumber), f => f.Phone.PhoneNumber()
+            },
+            {
+                nameof(FieldFaker.CellNumber), f => f.Phone.PhoneNumber()
+            },
+            {
+                nameof(FieldFaker.WorkTelephone), f => f.Phone.PhoneNumber()
+            },
+            {
+                nameof(FieldFaker.Phone), f => f.Phone.PhoneNumber()
+            }
+        };
+
+        foreach (var field in phoneFields)
+        {
+            faker.RuleFor(field.Key, field.Value);
+        }
+    }
+
+    private static void ConfigureEmailFields(AutoFaker<FieldFaker> faker)
+    {
+        var emailFields = new Dictionary<string, Func<Faker, string>>
+        {
+            {
+                nameof(FieldFaker.EmailAddress), f => f.Internet.Email()
+            },
+            {
+                nameof(FieldFaker.Email), f => f.Internet.Email()
+            }
+        };
+
+        foreach (var field in emailFields)
+        {
+            faker.RuleFor(field.Key, field.Value);
+        }
+    }
+
+    private static void ConfigureDateOfBirthFields(AutoFaker<FieldFaker> faker)
+    {
+        faker.RuleFor(o => o.DayOfBirth, f => f.Date.Past(20).Day.ToString())
+            .RuleFor(o => o.MonthOfBirth, f => f.Date.Past(20).Month.ToString())
+            .RuleFor(o => o.YearOfBirth, f => f.Date.Past(20).Year.ToString());
+    }
+
+    private static void ConfigureIDFields(AutoFaker<FieldFaker> faker)
+    {
+        var idFields = new Dictionary<string, Func<Faker, string>>
+        {
+            {
+                nameof(FieldFaker.NationalIDNumber), f => string.Join("", f.Random.Digits(11))
+            },
+            {
+                nameof(FieldFaker.TaxIDNumber), f => string.Join("", f.Random.Digits(11))
+            },
+            {
+                nameof(FieldFaker.SocialInsuranceNumber), f => f.Person.Sin()
+            },
+            {
+                nameof(FieldFaker.PersonalIdentityCode), f => string.Join("", f.Random.Digits(11))
+            },
+            {
+                nameof(FieldFaker.InseeNumber), f => string.Join("", f.Random.Digits(11))
+            },
+            {
+                nameof(FieldFaker.HongKongIDNumber), f => string.Join("", f.Random.Digits(11))
+            },
+            {
+                nameof(FieldFaker.PersonalPublicServiceNumber), f => string.Join("", f.Random.Digits(11))
+            },
+            {
+                nameof(FieldFaker.CodiceFiscale), f => string.Join("", f.Random.Digits(16))
+            },
+            {
+                nameof(FieldFaker.CURPIDNumber), f => string.Join("", f.Random.Digits(11))
+            },
+            {
+                nameof(FieldFaker.NRICNumber), f => string.Join("", f.Random.Digits(11))
+            },
+            {
+                nameof(FieldFaker.PinNumber), f => string.Join("", f.Random.Digits(11))
+            },
+            {
+                nameof(FieldFaker.SgNRICNumber), f => string.Join("", f.Random.Digits(11))
+            },
+            {
+                nameof(FieldFaker.SocialSecurityNumber), f => string.Join("", f.Random.Digits(11))
+            },
+            {
+                nameof(FieldFaker.PassportNumber), f => string.Join("", f.Random.Digits(11))
+            },
+            {
+                nameof(FieldFaker.Cpf), f => f.Person.Cpf()
+            },
+            {
+                nameof(FieldFaker.Cnpj), f => f.Company.Cnpj()
+            },
+            {
+                nameof(FieldFaker.Sin), f => f.Person.Sin()
+            }
+        };
+
+        foreach (var field in idFields)
+        {
+            faker.RuleFor(field.Key, field.Value);
+        }
+    }
+
+    private static void ConfigureKYBFields(AutoFaker<FieldFaker> faker)
+    {
+        var kybFields = new Dictionary<string, Func<Faker, string>>
+        {
+            {
+                nameof(FieldFaker.BusinessName), f => f.Company.CompanyName()
+            },
+            {
+                nameof(FieldFaker.BusinessRegistrationNumber), f => f.Random.AlphaNumeric(10)
+            },
+            {
+                nameof(FieldFaker.DUNSNumber), f => f.Random.AlphaNumeric(9)
+            },
+            {
+                nameof(FieldFaker.TradestyleName), f => f.Company.CompanyName()
+            },
+            {
+                nameof(FieldFaker.JurisdictionOfIncorporation), f => f.Address.State()
+            }
+        };
+
+        foreach (var field in kybFields)
+        {
+            faker.RuleFor(field.Key, field.Value);
+        }
+    }
+
+    private static void ConfigureCustomFields(AutoFaker<FieldFaker> faker, CustomFieldGroup customFieldGroup, Random random)
+    {
         foreach (var customField in customFieldGroup.CustomFields)
         {
             if (!string.IsNullOrEmpty(customField.StaticValue))
             {
-                faker.RuleFor(customField.DataField, f => customField.StaticValue);
+                faker.RuleFor(customField.DataField, _ => customField.StaticValue);
             }
 
             if (!string.IsNullOrEmpty(customField.Template))
             {
-                faker.RuleFor(customField.DataField, f => new Xeger(customField.Template, random).Generate());
+                faker.RuleFor(customField.DataField, _ => new Xeger(customField.Template, random).Generate());
             }
 
             if (customField.IsIgnore)
@@ -141,28 +409,92 @@ public sealed class FieldFaker
                 faker.Ignore(customField.DataField);
             }
         }
-        
-        foreach (var customField in customFieldGroupGlobal.CustomFields)
-        {
-            if (!string.IsNullOrEmpty(customField.StaticValue))
-            {
-                faker.RuleFor(customField.DataField, f => customField.StaticValue);
-            }
-
-            if (!string.IsNullOrEmpty(customField.Template))
-            {
-                faker.RuleFor(customField.DataField, f => new Xeger(customField.Template, random).Generate());
-            }
-
-            if (customField.IsIgnore)
-            {
-                faker.Ignore(customField.DataField);
-            }
-        }
-        
-        return faker.Generate();
     }
-    
+
+// ReSharper disable once CognitiveComplexity
+    private static void ConfigureCultureSpecificFields(Faker f, FieldFaker ff, string culture)
+    {
+        switch (culture)
+        {
+            case "pt_BR":
+                ff.TaxIDNumber = f.Person.Cpf();
+                ff.BusinessRegistrationNumber = f.Company.Cnpj();
+                break;
+
+            case "fr_CA":
+                ff.SocialInsuranceNumber = f.Person.Sin();
+                break;
+
+            case "da":
+                ff.CPRNumber = f.Person.Cpr();
+                break;
+
+            case "fi":
+                ff.PersonalIdentityCode = f.Person.Henkilotunnus();
+                ff.NationalIDNumber = f.Person.Henkilotunnus();
+                break;
+
+            case "it":
+                ff.CodiceFiscale = f.Person.CodiceFiscale();
+                ff.TaxIDNumber = f.Finance.CodiceFiscale(ff.LastName, ff.FirstName,
+                    DateTime.Parse(ff.YearOfBirth + "-" + ff.MonthOfBirth + "-" + ff.DayOfBirth, new CultureInfo("en")),
+                    ff.Gender == "M");
+                break;
+
+            case "nb_NO":
+                ff.PersonalIdentityCode = f.Person.Fodselsnummer();
+                ff.NationalIDNumber = f.Person.Fodselsnummer();
+                break;
+
+            case "pl":
+                ff.NationalIDNumber = f.Person.Pesel();
+                ff.TaxIDNumber = f.Company.Nip();
+                ff.BusinessRegistrationNumber = f.Company.Regon();
+                break;
+
+            case "pt_PT":
+                ff.TaxIDNumber = f.Person.Nif();
+                ff.NationalIDNumber = f.Person.Nif();
+                ff.BusinessRegistrationNumber = f.Company.Nipc();
+                break;
+
+            case "ro":
+                ff.TaxIDNumber = f.Person.Cnp();
+                ff.NationalIDNumber = f.Person.Cnp();
+                ff.PersonalIdentityCode = f.Person.Cnp();
+                break;
+
+            case "sv":
+                ff.PersonalIdentityCode = f.Person.Samordningsnummer();
+                ff.NationalIDNumber = f.Person.Personnummer();
+                ff.TaxIDNumber = f.Person.Personnummer();
+                break;
+
+            case "en_GB":
+            case "en_IE":
+                ff.DriverLicenceVersionNumber = f.Vehicle.GbRegistrationPlate(DateTime.Now.Subtract(TimeSpan.FromDays(365 * 18)), DateTime.Now);
+                ff.SortCode = f.Finance.SortCode();
+                ff.SocialInsuranceNumber = f.Finance.Nino();
+                ff.NINumber = f.Finance.Nino();
+                ff.TaxIDNumber = f.Finance.VatNumber(VatRegistrationNumberType.Standard);
+                ff.Country = f.Address.CountryOfUnitedKingdom();
+                break;
+
+            case "en_US":
+            case "en_CA":
+                ff.SocialSecurityNumber = f.Person.Ssn();
+                ff.TaxIDNumber = f.Company.Ein();
+                ff.NationalIDNumber = f.Person.Ssn();
+                ff.USCreditAgency = f.Finance.CreditCardNumber();
+                ff.US1987SIC1 = f.Finance.Account(4);
+                ff.US1987SIC2 = f.Finance.Account(4);
+                ff.US1987SIC3 = f.Finance.Account(4);
+                ff.US1987SIC4 = f.Finance.Account(4);
+                ff.US1987SIC5 = f.Finance.Account(4);
+                ff.US1987SIC6 = f.Finance.Account(4);
+                break;
+        }
+    }
     public string Name { get; set; }
     public string FirstName { get; set; }
     public string MiddleName { get; set; }
@@ -203,6 +535,7 @@ public sealed class FieldFaker
     public string HouseNumber { get; set; }
     public string City { get; set; }
     public string SocialInsuranceNumber { get; set; }
+    public string CPRNumber { get; set; }
     public string PassportMRZLine1 { get; set; }
     public string PassportMRZLine2 { get; set; }
     public string Nationality { get; set; }
@@ -314,6 +647,10 @@ public sealed class FieldFaker
     public string ItIdDocumentType { get; set; }
     public string FraudFlag { get; set; }
     public string StateOfBirth { get; set; }
+    public string UserName { get; set; }
+    public string Password { get; set; }
+    public string ConfirmPassword { get; set; }
+    public string RepeatPassword { get; set; }
     public string PersonalIdentityCode { get; set; }
     public string MinimumAge { get; set; }
     public string MedicareColor { get; set; }
@@ -326,7 +663,7 @@ public sealed class FieldFaker
     public string CitizenshipAcquisitionMonth { get; set; }
     public string CitizenshipAcquisitionDay { get; set; }
     public string MxRFCNumber { get; set; }
-    
+
     //The following added specifically for business verification
     public string BusinessName { get; set; }
     public string TradestyleName { get; set; }
@@ -398,7 +735,9 @@ public sealed class FieldFaker
     public string OpenLienIndicator { get; set; }
     public string OpenJudgementIndicator { get; set; }
     public string BankruptcyIndicator { get; set; }
+
     public string BusinessIDNumber { get; set; }
+
     //End of fields added specifically for business verification
     public string UserID { get; set; }
     public string IPAddress { get; set; }
@@ -407,6 +746,9 @@ public sealed class FieldFaker
     public string AuthenticityScore { get; set; }
     public string AuthenticityDetails { get; set; }
     public string AuthenticityReasons { get; set; }
+    public string Cpf { get; set; }
+    public string Cnpj { get; set; }
+    public string Sin { get; set; }
     public string DUNSNumber { get; set; } //Business verification
     public string certFamilyName { get; set; }
     public string certGivenNames { get; set; }
@@ -422,8 +764,8 @@ public sealed class FieldFaker
     public string viGivenNames { get; set; }
     public string SubRegion { get; set; }
     public string LatinFullName { get; set; }
-    public string MonthStarted { get; set; } //Business verification
-    public string DayStarted { get; set; } //Business verification
+    public string MonthStarted { get; set; }               //Business verification
+    public string DayStarted { get; set; }                 //Business verification
     public string SecondaryLocalActivityCode { get; set; } //Business verification
     public string VehicleRegistrationPlate { get; set; }
     public string MothersFirstNames { get; set; }

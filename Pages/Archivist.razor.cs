@@ -34,7 +34,7 @@ public partial class Archivist : BasePage, IAsyncDisposable
         if (_file is null)
             return;
         
-        await using var stream = _file.OpenReadStream();
+        await using var stream = _file.OpenReadStream(maxAllowedSize: 100 * 1024 * 1024);
         var fileContent = await new StreamReader(stream).ReadToEndAsync();
         await StorageService.ImportDatabase(fileContent);
         

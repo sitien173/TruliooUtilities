@@ -26,10 +26,8 @@ public class UpdateDatasourceService(
         var config = await globalConfigurationService.GetAsync();
         
         if(config == null)
-        {
-            toastService.ShowError("Global configuration not found");
             return null;
-        }
+        
         Datasource? datasource = null;
         try
         {
@@ -60,10 +58,7 @@ public class UpdateDatasourceService(
         var config = await globalConfigurationService.GetAsync();
         
         if(config == null)
-        {
-            toastService.ShowError("Global configuration not found");
             return;
-        }
 
         try
         {
