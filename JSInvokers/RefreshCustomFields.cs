@@ -42,7 +42,6 @@ public static class RefreshCustomFields
                 StaticValue = customField?.StaticValue,
                 Template = customField?.Template,
                 IsIgnore = customField?.IsIgnore ?? false,
-                Domain = customField?.Domain,
                 IsCustomize = customField?.IsCustomize ?? false
             });
         }

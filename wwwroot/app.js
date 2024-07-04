@@ -13,9 +13,9 @@ export async function beforeStart(options, extensions, blazorBrowserExtension) {
             autoExpandAccordionWhenDebug();
         }
 
-        const aELe = getElementByXpath("//*[@id=\"atlas-sidebar-nav\"]/div/div[1]/a[3]");
-        if(getElementByXpath("//*[@id=\"atlas-sidebar-nav\"]/div/div[1]/a[3]")) {
-            aELe.setAttribute('href', 'eidv/personMatch');
+        const aELe = document.querySelector("a[href='/verification']");
+        if(aELe) {
+            aELe.setAttribute('href', '/eidv/personMatch');
         }
 
         onMessageReceivedEvent();
@@ -246,8 +246,7 @@ function fillElement(item){
     const matches = document.querySelectorAll(item.match);
     const validMatches = filterValidElements(matches);
     validMatches.forEach(control => {
-        item.domain = item.domain.replace(/(^\w+:|^)\/\//, '');
-        if (!item.isIgnore && document.domain.includes(item.domain) || item.domain === 'all') {
+        if (!item.isIgnore) {
             setValue(control, item.generateValue);
         }
     });

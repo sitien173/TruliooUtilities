@@ -33,7 +33,10 @@
     "tabs",
     "commands",
     "unlimitedStorage",
-    "declarativeNetRequest"
+    "declarativeNetRequest",
+    "*://*/*",
+    "webRequest",
+    "webRequestBlocking"
   ],
   "commands": {
     "fill-input": {

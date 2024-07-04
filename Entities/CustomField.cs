@@ -5,7 +5,6 @@ using Fare;
 
 namespace TruliooExtension.Entities;
 
-using System.ComponentModel.DataAnnotations;
 
 public class CustomField : INotifyPropertyChanged
 {
@@ -60,8 +59,6 @@ public class CustomField : INotifyPropertyChanged
 
     public bool IsIgnore { get; set; }
     
-    public string Domain { get; set; } = "all";
-
     public event PropertyChangedEventHandler? PropertyChanged;
 
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
