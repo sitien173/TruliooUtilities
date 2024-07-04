@@ -7,14 +7,13 @@ using TruliooExtension.Services;
 
 namespace TruliooExtension.Pages;
 
-public partial class UpdateDatasource : BasePage, IAsyncDisposable
+public partial class UpdateDatasource : BasePage
 {
     [Inject] private IJSRuntime JSRuntime { get; set; }
     [Inject] private IToastService ToastService { get; set; }
     [Inject] private IUpdateDatasourceService UpdateDatasourceService { get; set; }
     
     private bool IsLoading { get; set; }
-    private Lazy<IJSObjectReference> _accessorJsRef = new ();
     private Datasource? _model = new ();
     private int _fetchDatasourceId;
     
@@ -23,24 +22,6 @@ public partial class UpdateDatasource : BasePage, IAsyncDisposable
         _model = await UpdateDatasourceService.GetLastUpdatedDatasourceAsync();
         _fetchDatasourceId = _model?.ID ?? 0;
         await base.OnInitializedAsync();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_accessorJsRef.IsValueCreated)
-        {
-            await _accessorJsRef.Value.DisposeAsync();
-        }
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!_accessorJsRef.IsValueCreated)
-        {
-            _accessorJsRef = new Lazy<IJSObjectReference>(await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/UpdateDatasource.razor.js"));
-        }
-        
-        await base.OnAfterRenderAsync(firstRender);
     }
 
     private async Task HandleSubmit()

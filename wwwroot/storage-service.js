@@ -1,4 +1,4 @@
-﻿import * as _ from './node_modules/localforage/dist/localforage.min.js';
+﻿import * as _ from './lib/localforage/localforage.min.js';
 import {constantStrings} from './common.mjs';
 export const setItem = async (instanceName, key, value) => {
     const instance = getInstances(instanceName);

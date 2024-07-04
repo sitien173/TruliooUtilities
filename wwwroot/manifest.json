@@ -4,7 +4,7 @@
   "description": "My browser extension built with Blazor WebAssembly",
   "version": "1",
   "background": {
-    "service_worker": "background-worker.js",
+    "service_worker": "BackgroundWorker.js",
     "persistent": true
   },
   "content_scripts": [

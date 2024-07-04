@@ -6,8 +6,7 @@ using TruliooExtension.Services;
 
 namespace TruliooExtension.Pages;
 
-public partial class GlobalConfiguration
-    : BasePage, IAsyncDisposable
+public partial class GlobalConfiguration : BasePage
 {
     [Inject] private IJSRuntime JSRuntime { get; set; }
     [Inject] private IToastService ToastService { get; set; }
@@ -17,7 +16,6 @@ public partial class GlobalConfiguration
     [Inject] private IUpdateDatasourceService UpdateDatasourceService { get; set; }
     
     private bool IsLoading { get; set; }
-    private Lazy<IJSObjectReference> _accessorJsRef = new ();
     private Entities.GlobalConfiguration _model = new ();
     private IReadOnlyDictionary<string, string>? _locales = new Dictionary<string, string>();
     private bool _canConnectUpdateDataSource;
@@ -36,24 +34,6 @@ public partial class GlobalConfiguration
         }
         
         await base.OnInitializedAsync();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_accessorJsRef.IsValueCreated)
-        {
-            await _accessorJsRef.Value.DisposeAsync();
-        }
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!_accessorJsRef.IsValueCreated)
-        {
-            _accessorJsRef = new Lazy<IJSObjectReference>(await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/GlobalConfiguration.razor.js"));
-        }
-        
-        await base.OnAfterRenderAsync(firstRender);
     }
 
     private async Task HandleSubmit()

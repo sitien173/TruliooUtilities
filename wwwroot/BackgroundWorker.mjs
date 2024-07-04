@@ -1,11 +1,11 @@
-﻿import browser from './content/Blazor.BrowserExtension/lib/browser-polyfill.js';
+﻿import browser from './lib/Blazor.BrowserExtension/lib/browser-polyfill.js';
 import {getItem, getAll} from './storage-service.js';
 import {constantStrings} from './common.mjs';
+import localforage from './lib/localforage/localforage.js';
 const {
     quicktype,
     InputData,
     jsonInputForTargetLanguage} = require("quicktype-core");
-const localforage = require('localforage');
 self.localforage = localforage;
 browser.runtime.onStartup.addListener(async function () {
     const rules = await getAll(constantStrings.Tables.CSPManager);
@@ -85,7 +85,6 @@ browser.runtime.onInstalled.addListener(async () => {
 
 // Add event listeners to menu items
 browser.contextMenus.onClicked.addListener(async (info, tab) => {
-    // send message to mark content script enable loading spinner
     switch (info.menuItemId) {
         case constantStrings.ContextMenusID.PasteToCp:
             await browser.tabs.sendMessage(tab.id, {action: constantStrings.MessageAction.PasteToCp});
